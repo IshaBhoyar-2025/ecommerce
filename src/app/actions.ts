@@ -1,4 +1,4 @@
-"use server";
+  "use server";
 
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User"
@@ -51,7 +51,7 @@ export async function loginUser(formData: FormData) {
     return { error: "Invalid email or password" };
   }
 
-  (await cookies()).set("user", JSON.stringify({ id: user._id, name: user.name, email: user.email }), {
+  (await cookies()).set("user", JSON.stringify({ id: user._id}), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
   });
@@ -64,7 +64,16 @@ export async function getCurrentUser() {
   const cookieStore = await cookies();
   const cookie = cookieStore.get("user");
   if (!cookie) return null;
-  return JSON.parse(cookie.value);
+  //return JSON.parse(cookie.value);
+  const user = JSON.parse(cookie.value);
+  await connectDB();
+  const currentUser = await User.findById(user.id);
+  if (!currentUser) return null;
+  return {
+    id: currentUser._id,
+    name: currentUser.name,
+    email: currentUser.email,
+  };
 }
 
 // Logout User
