@@ -1,12 +1,11 @@
 import { getCurrentAdmin, logoutAdmin } from"../actions";
+import { redirect } from "next/navigation";
 
 export default async function ProfilePage() {
   const Admin = await getCurrentAdmin();
 
-  console.log("Admin", Admin);
-
   if (!Admin) {
-    return <p>Please <a href="admin/login">login</a>.</p>;
+   redirect("/admin/login");
   }
 
   return (

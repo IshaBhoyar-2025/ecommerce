@@ -1,28 +1,21 @@
-"use client";
 
-import { useState } from "react";
-import { addAdmin } from "../actions";
+import { AddAdmin } from "./components/AddAdmin";
+import { getCurrentAdmin } from "../actions";
+import { redirect } from "next/navigation";
 
-export default function RegisterPage() {
-  const [message, setMessage] = useState("");
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const response = await addAdmin(formData);
-    setMessage(response.error || response.success || "");
-  }
-
+export default async function AddAdminPage() {
+   const admin = await getCurrentAdmin();
+    if (!admin) {
+      redirect("/admin/login");
+    }
   return (
-    <div>
-      <h1>Register</h1>
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="name" placeholder="Name" required />
-        <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Password" required />
-        <button type="submit">Register</button>
-      </form>
-      {message && <p>{message}</p>}
-    </div>
-  );
+
+
+    
+      <AddAdmin />
+
+  )
+
 }
+

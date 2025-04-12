@@ -1,27 +1,16 @@
-"use client";
+import {Login} from "./components/Login";
+import { getCurrentAdmin } from "../actions";
+import { redirect } from "next/navigation";
 
-import { useState } from "react";
-import { loginAdmin } from "../actions";
+export default  async function LoginPage() {
 
-export default function LoginPage() {
-  const [message, setMessage] = useState("");
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const response = await loginAdmin(formData);
-    setMessage(response.error || "");
-  }
-
+  const admin = await getCurrentAdmin();
+      if (admin) {
+        redirect("/admin/dashboard");
+      } 
   return (
-    <div>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-      </form>
-      {message && <p>{message}</p>}
-    </div>
+    
+      <Login />
+  
   );
 }
