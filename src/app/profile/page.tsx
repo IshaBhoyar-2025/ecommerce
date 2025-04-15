@@ -1,10 +1,11 @@
 import { getCurrentUser, logoutUser } from "../actions";
+import { redirect } from "next/navigation";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    return <p>Please <a href="/login">login</a>.</p>;
+   redirect("/login");
   }
 
   return (

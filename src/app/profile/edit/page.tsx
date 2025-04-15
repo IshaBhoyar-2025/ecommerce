@@ -1,13 +1,13 @@
 // app/profile/edit/page.tsx
 import EditProfilePageClient from "./EditProfileClient";
 import { getCurrentUser } from "@/app/actions";
+import { redirect } from "next/navigation";
 
 export default async function EditProfilePage() {
   const user = await getCurrentUser();
-
+   
   if (!user) {
-    return <p>Please <a href="/login">login</a>.</p>;
+    redirect("/login");
   }
-
   return <EditProfilePageClient user={user} />;
 }
