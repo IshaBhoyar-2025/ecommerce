@@ -1,6 +1,7 @@
 'use client';
 import { useState } from "react";
 import { addAdmin } from "../../actions";
+import { useRouter } from "next/navigation";
 
 export function AddAdmin() {
   //add redirect if logged in
@@ -13,6 +14,7 @@ export function AddAdmin() {
     password: "",
     confirmPassword: "",
   });
+  const router = useRouter();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,7 +31,15 @@ export function AddAdmin() {
 
     const response = await addAdmin(data);
     setMessage(response.error || response.success || "");
+    if (response.success) {
+      // redirect to admin page
+      router.push("/admin/users");
+    }
   }
+  const handleCancel = () => {
+    // redirect to admin page
+    router.push("/admin/users");
+  };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
@@ -78,7 +88,15 @@ export function AddAdmin() {
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
         >
-          Register
+          Add
+        </button>
+
+        <button
+          type="button"
+          onClick={handleCancel} 
+          className="w-full bg-red-600 hover:bg-blue-700 text-white py-2 rounded"
+        >
+          Cancel
         </button>
         {message && <p className="text-red-500 text-center text-sm">{message}</p>}
       </form>

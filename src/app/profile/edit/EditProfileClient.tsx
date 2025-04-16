@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { updateProfile } from "@/app/actions";
+import { UserType } from "@/app/admin/users/actions";
 
-export default function EditProfilePageClient({ user }: { user: any }) {
+export default function EditProfilePageClient({ user }: { user: UserType }) {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [message, setMessage] = useState("");

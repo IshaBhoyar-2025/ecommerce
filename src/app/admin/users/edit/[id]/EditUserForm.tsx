@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-export default function EditAdminForm({
-  admin,
-  updateAdmin,
+export default function EditUserForm({
+  user,
+  updateUser,
 }: {
-  admin: { id: string; name: string; email: string };
-  updateAdmin: (formData: FormData) => Promise<{ error?: string; success?: string }>;
+  user: { id: string; name: string; email: string };
+  updateUser: (formData: FormData) => Promise<{ error?: string; success?: string }>;
 }) {
-  const [name, setName] = useState(admin.name);
-  const [email, setEmail] = useState(admin.email);
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -26,23 +26,23 @@ export default function EditAdminForm({
     }
 
     const formData = new FormData();
-    formData.set("id", admin.id);
+    formData.set("id", user.id);
     formData.set("name", name);
     formData.set("email", email);
     if (password) {
       formData.set("password", password);
     }
 
-    const result = await updateAdmin(formData);
+    const result = await updateUser(formData);
     if (result.error) {
       setMessage(result.error);
     } else {
-      router.push("/admin/dashboard");
+      router.push("/admin/users");
     }
   }
-   const handleCancel = () => {
-   redirect("/admin/manage");
-   }
+  const handleCancel = () => {  
+    router.push("/admin/users");
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

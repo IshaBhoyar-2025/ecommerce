@@ -1,7 +1,7 @@
-  "use server";
+"use server";
 
 import { connectDB } from "@/lib/mongodb";
-import User from "@/models/User"
+import User from "../models/User";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -51,7 +51,7 @@ export async function loginUser(formData: FormData) {
     return { error: "Invalid email or password" };
   }
 
-  (await cookies()).set("user", JSON.stringify({ id: user._id}), {
+  (await cookies()).set("user", JSON.stringify({ id: user._id }), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
   });
@@ -64,13 +64,13 @@ export async function getCurrentUser() {
   const cookieStore = await cookies();
   const cookie = cookieStore.get("user");
   if (!cookie) return null;
-  //return JSON.parse(cookie.value);
+
   const user = JSON.parse(cookie.value);
   await connectDB();
   const currentUser = await User.findById(user.id);
   if (!currentUser) return null;
   return {
-    id: currentUser._id,
+    _id: currentUser._id.toString(),
     name: currentUser.name,
     email: currentUser.email,
   };
@@ -91,7 +91,7 @@ export async function updateProfile(formData: FormData) {
   if (!user) return { error: "Not authenticated" };
 
   await connectDB();
-  await User.findByIdAndUpdate(user.id, { name, email });
+  await User.findByIdAndUpdate(user._id, { name, email });
 
   return { success: "Profile updated successfully" };
 }

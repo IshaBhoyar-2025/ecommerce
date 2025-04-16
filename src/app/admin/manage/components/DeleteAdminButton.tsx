@@ -20,7 +20,7 @@ export const DeleteAdminButton: React.FC<DeleteAdminButtonProps> = ({ adminId })
             await deleteAdminById(formData);
 
         } catch (error) {
-            alert("An error occurred while deleting the admin.");
+            alert("An error occurred while deleting the admin." + error);
         }
     };
 

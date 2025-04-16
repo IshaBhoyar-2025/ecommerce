@@ -1,14 +1,9 @@
-
+'use client'
 import { useState } from "react";
-import { updateAdminProfile,getCurrentAdmin } from "@/app/admin/actions";
-import { redirect } from "next/navigation";
+import { updateAdminProfile } from "@/app/admin/actions";
 
-export async function AdminEdit()  {
-    const Admin = await getCurrentAdmin();
+export function AdminEdit()  {
 
-    if (!Admin) {
-     redirect("/admin/login");
-    }
 
     //move to component
 

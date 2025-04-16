@@ -6,6 +6,13 @@ import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import mongodb from "mongodb";
+
+export type AdminType = {
+  id: string;
+  name: string;
+  email: string;
+};
 
 // =======================
 // Delete Admin
@@ -55,10 +62,10 @@ export async function addAdmin(formData: FormData) {
     await newAdmin.save();
 
     // Return success message
-    return { success: "Admin registered successfully. Please login." };
+    return { success: "Admin Added successfully" };
   } catch (error) {
-    console.error("Error during admin registration:", error);
-    return { error: "An error occurred during registration. Please try again." };
+    console.error("Error during admin aadition:", error);
+    return { error: "An error occurred during added. Please try again." };
   }
 }
 
@@ -171,7 +178,7 @@ export async function getAllAdmins() {
 // =======================
 export async function getAdminById(id: string) {
   await connectDB();
-  const admin = await Admin.findById(id).lean() as { _id: any; name: string; email: string } | null;
+  const admin = await Admin.findById(id).lean() as { _id: mongodb.ObjectId; name: string; email: string } | null;
   if (!admin) return null;
 
   return {
@@ -192,7 +199,7 @@ export async function updateAdminById(formData: FormData) {
 
   await connectDB();
 
-  const updateFields: any = { name, email };
+  const updateFields: {name: string, email: string, password?: string} = { name, email };
 
   if (password) {
     const hashedPassword = await bcrypt.hash(password, 10);

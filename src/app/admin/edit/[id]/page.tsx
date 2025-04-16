@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { redirect } from "next/navigation";
 import { getCurrentAdmin } from "@/app/admin/actions";
 
-export default async function EditAdminPage({ params }: { params: { id: string } }) {
+export default async function EditAdminPage({ params }: { params: Promise<{ id: string }> }) {
   //redirect("/admin/login");
   // Check if the user is authenticated as an admin
   const admin = await getCurrentAdmin();
@@ -12,7 +12,7 @@ export default async function EditAdminPage({ params }: { params: { id: string }
     redirect("/admin/login");
   }
 
-  const { id } = params;
+  const { id } = await params;
 
   // Check if id is a valid ObjectId to avoid crash
   if (!mongoose.Types.ObjectId.isValid(id)) {
