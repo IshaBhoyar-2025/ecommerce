@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import mongodb from "mongodb";
 
+
 export type AdminType = {
   id: string;
   name: string;
@@ -77,17 +78,20 @@ export async function loginAdmin(formData: FormData) {
   const password = formData.get("password") as string;
 
   if (!email || !password) {
+    console.log("Email or password not provided");
     return { error: "All fields are required" };
   }
 
   await connectDB();
   const admin = await Admin.findOne({ email });
   if (!admin) {
+    console.log("Admin not found");
     return { error: "Invalid email or password" };
   }
 
   const isMatch = await bcrypt.compare(password, admin.password);
   if (!isMatch) {
+    console.log("Password does not match");
     return { error: "Invalid email or password" };
   }
 

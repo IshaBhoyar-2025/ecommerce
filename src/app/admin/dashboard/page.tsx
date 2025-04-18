@@ -7,7 +7,8 @@ import { getCurrentAdmin } from "../actions";
 import { redirect } from "next/navigation";
 
 export default async function AdminDashboard() {
-    if (!getCurrentAdmin()) {
+    const admin = await getCurrentAdmin();
+    if (!admin) {
         redirect("/admin/login");
     }
    
@@ -25,6 +26,10 @@ export default async function AdminDashboard() {
                 <br />
                 <button className="bg-blue-500 text-white px-4 py-2  bottom-2 rounded mb-4">
                 <Link href="/admin/users"> Manage Users</Link> 
+                </button>
+                <br />
+                <button className="bg-blue-500 text-white px-4 py-2  bottom-2 rounded mb-4">
+                <Link href="/admin/categories"> Manage Categories</Link> 
                 </button>
         </div>
     );
