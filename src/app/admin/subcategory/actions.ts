@@ -41,15 +41,40 @@ export async function addSubCategory(formData: FormData) {
 }
 
 // Get all subcategories
-export async function getAllSubCategories(): Promise<SubCategoryType[]> {
+export async function getAllSubCategories(): Promise<(SubCategoryType & { parentCategoryName?: string })[]> {
   await connectDB();
 
-  const subcategories = await SubCategory.find().lean();
+  const subcategories = await SubCategory.aggregate([
+    {
+      $lookup: {
+        from: "categories", // This should be the actual MongoDB collection name
+        localField: "parentCategoryKey",
+        foreignField: "categoryKey",
+        as: "parentCategory",
+      },
+    },
+    {
+      $unwind: {
+        path: "$parentCategory",
+        preserveNullAndEmptyArrays: true, // In case no match is found
+      },
+    },
+    {
+      $project: {
+        subCategoryName: 1,
+        subCategoryKey: 1,
+        parentCategoryKey: 1,
+        parentCategoryName: "$parentCategory.categoryName",
+      },
+    },
+  ]);
+
   return subcategories.map((item: any) => ({
     _id: item._id.toString(),
     subCategoryName: item.subCategoryName,
     subCategoryKey: item.subCategoryKey,
     parentCategoryKey: item.parentCategoryKey,
+    parentCategoryName: item.parentCategoryName,
   }));
 }
 
