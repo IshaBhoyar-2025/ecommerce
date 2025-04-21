@@ -35,6 +35,10 @@ export default async function AdminDashboard() {
             <button className="bg-blue-500 text-white px-4 py-2  bottom-2 rounded mb-4">
                 <Link href="/admin/subcategory"> Manage Sub Categories</Link>
             </button>
+            <br />
+            <button className="bg-blue-500 text-white px-4 py-2  bottom-2 rounded mb-4">
+                <Link href="/admin/products"> Manage Product</Link>
+            </button>
         </div>
     );
 }
