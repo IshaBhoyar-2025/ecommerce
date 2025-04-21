@@ -1,18 +1,18 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface ISubCategory extends Document {
-  categoryName: string;
-  categoryKey: string;
-  parentCategoryKey?: string; 
-   
+  subCategoryName: string;
+  subCategoryKey: string;
+  parentCategoryKey?: string; // Optional in interface
 }
 
-const CategorySchema = new Schema<ISubCategory>({
-  categoryName: { type: String, required: true },
-  categoryKey: { type: String, required: true, unique: true }, // Ensuring categoryKey is unique
-  parentCategoryKey: { type: String, required:true }, // Optional field for parent category key
+const subCategorySchema = new Schema<ISubCategory>({
+  subCategoryName: { type: String, required: true },
+  subCategoryKey: { type: String, required: true, unique: true },
+  parentCategoryKey: { type: String, required: false }, // Marked false here too
 });
 
-const SubCategory = mongoose.models.SubCategory || mongoose.model<ISubCategory>("SubCategory", CategorySchema);
+const SubCategory =
+  mongoose.models.SubCategory || mongoose.model<ISubCategory>("SubCategory", subCategorySchema);
 
 export default SubCategory;
