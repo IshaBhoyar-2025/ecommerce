@@ -1,98 +1,123 @@
 'use client';
 
-import { useState } from "react";
-import { addProduct } from "../../actions"; // Adjust the import path as necessary
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { addProduct } from '../../actions'; // Adjust the import path as necessary
 
-type Props = {
-  // You can add any necessary props here if you need categories or other data.
+type Category = {
+  categoryName: string;
+  categoryKey: string;
 };
 
-export function AddProduct({}: Props) {
-  const [message, setMessage] = useState("");
+type SubCategory = {
+  subCategoryName: string;
+  subCategoryKey: string;
+  parentCategoryKey: string;
+};
+
+type AddProductProps = {
+  categories: Category[];
+  subcategories: SubCategory[];
+};
+
+export function AddProduct({ categories, subcategories }: AddProductProps) {
+  const [formData, setFormData] = useState({
+    productTitle: '',
+    productDescription: '',
+    subCategoryKey: '',
+  });
+
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [filteredSubcategories, setFilteredSubcategories] = useState<SubCategory[]>([]);
+  const [message, setMessage] = useState('');
   const router = useRouter();
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  useEffect(() => {
+    const filtered = subcategories.filter(
+      (sub) => sub.parentCategoryKey === selectedCategory
+    );
+    setFilteredSubcategories(filtered);
+    setFormData({ ...formData, subCategoryKey: '' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory]);
 
-    const form = event.currentTarget;
-    const title = form.productTitle.value;
-    const description = form.productDescription.value;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    if (!title || !description) {
+    if (!formData.productTitle || !formData.productDescription || !formData.subCategoryKey) {
       setMessage("All fields are required.");
       return;
     }
 
     const data = new FormData();
-    data.set("productTitle", title);
-    data.set("productDescription", description);
+    data.set('productTitle', formData.productTitle);
+    data.set('productDescription', formData.productDescription);
+    data.set('subCategoryKey', formData.subCategoryKey);
 
-    const response = await addProduct(data);
+    const res = await addProduct(data);
 
-    if (response.error) {
-      setMessage(response.error);
+    if (res.error) {
+      setMessage(res.error);
     } else {
-      setMessage("Product added successfully.");
-      router.push("/admin/products"); // Adjust path for the products listing page
+      router.push('/admin/products');
     }
-  }
-
-  const handleCancel = () => {
-    router.push("/admin/products"); // Adjust path to cancel and go back to product list
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6 bg-white shadow-md rounded-md">
       <h1 className="text-2xl font-bold mb-4">Add Product</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Product Title
-          <input
-            type="text"
-            name="productTitle"
-            placeholder="Product Title"
-            required
-            className="w-full px-4 py-2 border rounded"
-          />
-        </label>
+      <input
+        type="text"
+        value={formData.productTitle}
+        onChange={(e) => setFormData({ ...formData, productTitle: e.target.value })}
+        placeholder="Product Title"
+        className="w-full px-4 py-2 border rounded"
+        required
+      />
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Product Description
-          <textarea
-            name="productDescription"
-            placeholder="Product Description"
-            required
-            className="w-full px-4 py-2 border rounded"
-          ></textarea>
-        </label>
+      <textarea
+        value={formData.productDescription}
+        onChange={(e) => setFormData({ ...formData, productDescription: e.target.value })}
+        placeholder="Product Description"
+        className="w-full px-4 py-2 border rounded"
+        rows={4}
+        required
+      />
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
-        >
-          Add
-        </button>
+      <select
+        value={selectedCategory}
+        onChange={(e) => setSelectedCategory(e.target.value)}
+        className="w-full px-4 py-2 border rounded"
+        required
+      >
+        <option value="">Select Category</option>
+        {categories.map((cat) => (
+          <option key={cat.categoryKey} value={cat.categoryKey}>
+            {cat.categoryName}
+          </option>
+        ))}
+      </select>
 
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded"
-        >
-          Cancel
-        </button>
+      <select
+        value={formData.subCategoryKey}
+        onChange={(e) => setFormData({ ...formData, subCategoryKey: e.target.value })}
+        className="w-full px-4 py-2 border rounded"
+        required
+      >
+        <option value="">Select Subcategory</option>
+        {filteredSubcategories.map((sub) => (
+          <option key={sub.subCategoryKey} value={sub.subCategoryKey}>
+            {sub.subCategoryName}
+          </option>
+        ))}
+      </select>
 
-        {message && (
-          <p
-            className={`text-center text-sm ${
-              message.includes("success") ? "text-green-500" : "text-red-500"
-            }`}
-          >
-            {message}
-          </p>
-        )}
-      </form>
-    </div>
+      <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+        Add Product
+      </button>
+
+      {message && <p className="text-center text-red-500">{message}</p>}
+    </form>
   );
 }

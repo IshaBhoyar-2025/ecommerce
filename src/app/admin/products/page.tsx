@@ -6,7 +6,11 @@ export type ProductType = {
   _id: string;
   productTitle: string;
   productDescription: string;
+  categoryName?: string;
+  subCategoryName?: string;
 };
+
+
 
 export default async function ProductPage() {
   const products: ProductType[] = await getAllProducts();
@@ -34,31 +38,36 @@ export default async function ProductPage() {
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-2 border">Product Title</th>
-                <th className="px-4 py-2 border">Product Description</th>
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => (
-                <tr key={product._id} className="text-center">
-                  <td className="px-4 py-2 border">{product.productTitle}</td>
-                  <td className="px-4 py-2 border">{product.productDescription}</td>
-                  <td className="px-4 py-2 border space-x-2">
-                    <Link
-                      href={`/admin/products/edit/${product._id}`}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
-                    >
-                      Edit
-                    </Link>
+          <thead>
+  <tr className="bg-gray-100">
+    <th className="px-4 py-2 border">Product Title</th>
+    <th className="px-4 py-2 border">Product Description</th>
+    <th className="px-4 py-2 border">Category Name</th>
+    <th className="px-4 py-2 border">Subcategory Name</th>
+    <th className="px-4 py-2 border">Actions</th>
+  </tr>
+</thead>
+<tbody>
+  {products.map((product) => (
+    <tr key={product._id} className="text-center">
+      <td className="px-4 py-2 border">{product.productTitle}</td>
+      <td className="px-4 py-2 border">{product.productDescription}</td>
+      <td className="px-4 py-2 border">{product.categoryName }</td>
+      <td className="px-4 py-2 border">{product.subCategoryName}</td>
+      <td className="px-4 py-2 border space-x-2">
+        <Link
+          href={`/admin/products/edit/${product._id}`}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
+        >
+          Edit
+        </Link>
+        <DeleteProductButton productId={product._id.toString()} />
+      </td>
+    </tr>
+  ))}
+</tbody>
 
-                    <DeleteProductButton productId={product._id.toString()} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+
           </table>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { Schema, model, models } from 'mongoose';
+import mongoose, { Schema, model, models } from 'mongoose';
 
 const productSchema = new Schema({
   productTitle: {
@@ -10,6 +10,11 @@ const productSchema = new Schema({
     type: String,
     required: true,
     trim: true,
+  },
+  subCategoryKey: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubCategory',
+    required: true,
   },
 });
 
