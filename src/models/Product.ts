@@ -12,9 +12,9 @@ const productSchema = new Schema({
     trim: true,
   },
   subCategoryKey: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'SubCategory',
+    type: String,
     required: true,
+    trim: true,
   },
 });
 

@@ -2,7 +2,11 @@
 
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import SubCategory from "@/models/SubCategory";
 import { revalidatePath } from "next/cache"
+
+
+
 
 // Add Product
 export async function addProduct(formData: FormData) {
@@ -24,25 +28,34 @@ export async function addProduct(formData: FormData) {
   }
 }
 
-export async function updateProduct(formData: FormData) {
-  const id = formData.get("id")?.toString();
-  const productTitle = formData.get("productTitle")?.toString();
-  const productDescription = formData.get("productDescription")?.toString();
-  const subCategoryKey = formData.get("subCategoryKey")?.toString();
+// actions/products.ts
 
-  if (!id || !productTitle || !productDescription || !subCategoryKey) {
-    return { error: "All fields are required." };
-  }
-
+export async function updateProduct(
+  productId: string,
+  title: string,
+  description: string,
+  categoryKey: string,
+  subCategoryKey: string
+) {
   try {
     await connectDB();
-    await Product.findByIdAndUpdate(id, { productTitle, productDescription, subCategoryKey });
+    const product = await Product.findByIdAndUpdate(
+      productId,
+      {
+        productTitle: title,
+        productDescription: description,
+        categoryKey,
+        subCategoryKey,
+      },
+      { new: true }
+    );
     revalidatePath("/admin/products");
-    return { success: true };
+    return { success: true, product };
   } catch (error: any) {
     return { error: "Failed to update product. " + error.message };
   }
 }
+
 
 
 // Delete Product
@@ -93,12 +106,6 @@ export const getAllProducts = async () => {
       },
     },
   ]);
-
-
-  // console.log("Products:", products); // Debugging line to check the output
-  
-
-
   return products;
 };
 
@@ -115,5 +122,14 @@ export async function getProductById(id: string) {
     return null;
   }
 }
-export { Product };
 
+export async function getSubCategoryByKey(subCategoryKey: string) {
+  try {
+    await connectDB();
+    const subCategory = await SubCategory.findOne({ subCategoryKey });
+    return subCategory;
+  }
+  catch (error: any) {
+    return null;
+  }
+}

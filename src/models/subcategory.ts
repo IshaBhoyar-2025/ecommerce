@@ -9,7 +9,7 @@ export interface ISubCategory extends Document {
 const subCategorySchema = new Schema<ISubCategory>({
   subCategoryName: { type: String, required: true },
   subCategoryKey: { type: String, required: true, unique: true },
-  parentCategoryKey: { type: String, required: false }, // Marked false here too
+  parentCategoryKey: { type: String, required: true }, // Marked false here too
 });
 
 const SubCategory =
