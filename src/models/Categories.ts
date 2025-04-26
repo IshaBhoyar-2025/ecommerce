@@ -10,6 +10,6 @@ const CategorySchema = new Schema<ICategory>({
   categoryKey: { type: String, required: true, unique: true }, // Ensuring categoryKey is unique
 });
 
-const Category = mongoose.models.Category || mongoose.model<ICategory>("Category", CategorySchema);
+const Category = mongoose.models.Category || mongoose.model<ICategory>("Category", CategorySchema, 'categories');
 
 export default Category;

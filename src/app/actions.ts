@@ -5,6 +5,9 @@ import User from "../models/User";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import Product from "@/models/Product";
+import Category from "@/models/Categories";
+import { CategoryType } from "./admin/categories/actions";
 
 // Register User
 export async function registerUser(formData: FormData) {
@@ -94,4 +97,57 @@ export async function updateProfile(formData: FormData) {
   await User.findByIdAndUpdate(user._id, { name, email });
 
   return { success: "Profile updated successfully" };
+}
+
+export const getAllProducts = async () => {
+  const products = await Product.aggregate([
+    // Join Subcategory
+    {
+      $lookup: {
+        from: 'subcategories',
+        localField: 'subCategoryKey',
+        foreignField: 'subCategoryKey',
+        as: 'subCategory',
+      },
+    },
+    { $unwind: { path: '$subCategory', preserveNullAndEmptyArrays: true } },
+  
+    // Join Category using subCategory.parentCategoryKey
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'subCategory.parentCategoryKey',
+        foreignField: 'categoryKey',
+        as: 'category',
+      },
+    },
+    { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+  
+    // Final output
+    {
+      $project: {
+        _id: 1,
+        productTitle: 1,
+        productDescription: 1,
+        subCategoryName: '$subCategory.subCategoryName',
+        categoryName: '$category.categoryName',
+      },
+    },
+  ]);
+  return products;
+};
+
+export async function getAllCategories(): Promise<CategoryType[]> {
+  try {
+    await connectDB();
+    const categories = await Category.find();
+    return categories.map((category) => ({
+      _id: category._id.toString(),
+      categoryName: category.categoryName,
+      categoryKey: category.categoryKey,
+    }));
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
 }

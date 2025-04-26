@@ -15,6 +15,8 @@ export type ProductType = {
 export default async function ProductPage() {
   const products: ProductType[] = await getAllProducts();
 
+  console.log(products, "products");
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Manage Products</h1>
