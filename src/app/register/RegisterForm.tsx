@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { registerUser } from "../actions";
 
+
 export default function RegisterForm() {
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState({
@@ -27,6 +28,13 @@ export default function RegisterForm() {
 
     const response = await registerUser(data);
     setMessage(response.error || response.success || "");
+
+    if (response.success) {
+      // Redirect to login page or home page
+      window.location.href = "/login";
+    } 
+
+    
   }
 
   return (

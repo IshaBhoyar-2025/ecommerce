@@ -56,7 +56,7 @@ export async function loginUser(formData: FormData) {
     secure: process.env.NODE_ENV === "production",
   });
 
-  redirect("/profile");
+  redirect("/");
 }
 
 // Get Current User
