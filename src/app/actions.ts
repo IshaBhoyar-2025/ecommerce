@@ -8,6 +8,8 @@ import { cookies } from "next/headers";
 import Product from "@/models/Product";
 import Category from "@/models/Categories";
 import { CategoryType } from "./admin/categories/actions";
+import SubCategory from "@/models/SubCategory";
+
 
 // Register User
 export async function registerUser(formData: FormData) {
@@ -100,8 +102,9 @@ export async function updateProfile(formData: FormData) {
 }
 
 export const getAllProducts = async () => {
+  await connectDB();
+
   const products = await Product.aggregate([
-    // Join Subcategory
     {
       $lookup: {
         from: 'subcategories',
@@ -112,7 +115,6 @@ export const getAllProducts = async () => {
     },
     { $unwind: { path: '$subCategory', preserveNullAndEmptyArrays: true } },
   
-    // Join Category using subCategory.parentCategoryKey
     {
       $lookup: {
         from: 'categories',
@@ -123,8 +125,7 @@ export const getAllProducts = async () => {
     },
     { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
   
-    // Final output
-    {
+   {
       $project: {
         _id: 1,
         productTitle: 1,
@@ -134,6 +135,7 @@ export const getAllProducts = async () => {
       },
     },
   ]);
+
   return products;
 };
 
@@ -151,3 +153,49 @@ export async function getAllCategories(): Promise<CategoryType[]> {
     return [];
   }
 }
+
+
+
+
+export const getSubCategoriesByCategoryKey = async (categoryKey: string) => {
+  await connectDB();
+  return await SubCategory.find({ parentCategoryKey: categoryKey });
+};
+
+
+export const getProductsByCategoryKey = async (categoryKey: string) => {
+  await connectDB();
+
+  return await Product.aggregate([
+    {
+      $lookup: {
+        from: 'subcategories',
+        localField: 'subCategoryKey',
+        foreignField: 'subCategoryKey',
+        as: 'subCategory',
+      },
+    },
+    { $unwind: '$subCategory' },
+    {
+      $match: {
+        'subCategory.parentCategoryKey': categoryKey,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        productTitle: 1,
+        productDescription: 1,
+        price: 1,
+        subCategoryName: '$subCategory.subCategoryName',
+      },
+    },
+  ]);
+};
+export const getProductsBySubCategoryKey = async (subCategoryKey: string) => {
+  await connectDB();
+
+  return await Product.find({ subCategoryKey });
+};
+
+export type { CategoryType };

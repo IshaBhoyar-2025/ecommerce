@@ -97,17 +97,15 @@ export async function deleteCategoryById(id: string) {
 }
 
 // 📦 Get all categories
-export async function getAllCategories(): Promise<CategoryType[]> {
-  try {
-    await connectDB();
-    const categories = await Category.find();
-    return categories.map((category) => ({
-      _id: category._id.toString(),
-      categoryName: category.categoryName,
-      categoryKey: category.categoryKey,
-    }));
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    return [];
-  }
+
+export async function getAllCategories() {
+  await connectDB();
+  const categories = await Category.find({}).lean();
+
+  return categories.map((category: any) => ({
+    ...category,
+    _id: category._id.toString(),
+    createdAt: category.createdAt?.toISOString?.(),
+    updatedAt: category.updatedAt?.toISOString?.(),
+  }));
 }

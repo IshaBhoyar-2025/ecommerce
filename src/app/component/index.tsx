@@ -2,36 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { CategoryType } from "../admin/categories/actions";
-import { ProductType } from "../admin/products/page";
-
+import { CategoryType, ProductType } from "../types";
 
 type Props = {
   products: ProductType[];
   categories: CategoryType[];
-}
+};
 
-
-
-export function Home({
-  products,
-  categories,
-}: Props) {
+export function Home({ products, categories }: Props) {
   const [cart, setCart] = useState<ProductType[]>([]);
-
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [searchQuery, setSearchQuery] = useState("");
 
-
-  // Add product to cart
-  const addToCart = (product:any) => {
+  const addToCart = (product: ProductType) => {
     setCart([...cart, product]);
   };
 
-  // Handle "Buy Now" (simulate with an alert)
-  const buyNow = (product:any) => {
-    alert(`You are buying: ${product.title}`);
+  const buyNow = (product: ProductType) => {
+    alert(`You are buying: ${product.productTitle}`);
   };
 
   return (
@@ -40,7 +28,6 @@ export function Home({
       <header className="bg-white shadow-md py-4 px-6 fixed w-full z-10 top-0 left-0 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-blue-600">E-Shop</h1>
         <div className="flex items-center space-x-6">
-          {/* Search Bar */}
           <input
             type="text"
             placeholder="Search for products"
@@ -49,15 +36,9 @@ export function Home({
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <div className="flex space-x-4">
-            <Link href="/login" className="text-gray-700 hover:text-blue-600">
-              Login
-            </Link>
-            <Link href="/register" className="text-gray-700 hover:text-blue-600">
-              Register
-            </Link>
-            <Link href="/cart" className="text-gray-700 hover:text-blue-600">
-              Cart ({cart.length})
-            </Link>
+            <Link href="/login" className="text-gray-700 hover:text-blue-600">Login</Link>
+            <Link href="/register" className="text-gray-700 hover:text-blue-600">Register</Link>
+            <Link href="/cart" className="text-gray-700 hover:text-blue-600">Cart ({cart.length})</Link>
           </div>
         </div>
       </header>
@@ -66,26 +47,19 @@ export function Home({
       <section className="bg-blue-600 text-white text-center py-16 mt-20">
         <h2 className="text-4xl font-semibold">Welcome to E-Shop</h2>
         <p className="mt-4 text-lg">Find the best deals on electronics, fashion, and more!</p>
-        <a
-          href="#products"
-          className="mt-6 inline-block bg-yellow-500 text-black py-2 px-6 rounded-md text-lg hover:bg-yellow-600 transition"
-        >
-          Shop Now
-        </a>
+        <a href="#products" className="mt-6 inline-block bg-yellow-500 text-black py-2 px-6 rounded-md text-lg hover:bg-yellow-600 transition">Shop Now</a>
       </section>
 
-      {/* Main Layout with Sidebar and Products */}
+      {/* Layout */}
       <div className="flex px-6 py-8 gap-8 mt-8">
-        {/* Sidebar with Filters */}
+        {/* Sidebar */}
         <aside className="w-64 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Categories</h2>
           <ul className="space-y-4">
-            {categories.map((cat:any) => (
+            {categories.map((cat) => (
               <li key={cat._id}>
-                <button
-                  className="w-full text-left text-lg py-2 px-4 rounded-md transition duration-300 hover:bg-blue-100" >
-                  {cat.categoryName}  
-                </button>
+                <Link href={`categories/${cat.categoryKey}`} className="w-full text-left text-lg py-2 px-4 rounded-md hover:bg-blue-100">
+                  {cat.categoryName}
+                </Link>
               </li>
             ))}
           </ul>
@@ -106,46 +80,20 @@ export function Home({
           </div>
         </aside>
 
-        {/* Product Listings */}
+        {/* Product Grid */}
         <main className="flex-1 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="products">
           {products.length === 0 ? (
             <p className="text-center col-span-full text-gray-500">No products found.</p>
           ) : (
             products.map((product) => (
-              <div
-                key={product._id}
-                className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition duration-300 transform hover:scale-105"
-              >
-                
+              <div key={product._id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition transform hover:scale-105">
                 <div className="p-4">
                   <h3 className="text-lg font-semibold text-gray-800">{product.productTitle}</h3>
                   <p className="text-sm text-gray-600">{product.productDescription}</p>
-                  <div className="flex items-center space-x-2 mt-2">
-                    {/* Star Ratings */}
-                    <div className="flex text-yellow-500">
-                      {Array.from({ length: 5 }, (_, index) => (
-                        <span key={index}>
-                          {false ? "★" : "☆"}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-500">({})</p>
-                  </div>
                   <p className="text-xl font-bold text-blue-600 mt-2">₹{10}</p>
-                  {/* Action Buttons */}
                   <div className="flex gap-2 mt-4">
-                    <button
-                      className="bg-green-500 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-green-600 transition duration-300"
-                      onClick={() => addToCart(product)}
-                    >
-                      Add to Cart
-                    </button>
-                    <button
-                      className="bg-yellow-500 text-white py-2 px-4 rounded-md text-sm font-semibold hover:bg-yellow-600 transition duration-300"
-                      onClick={() => buyNow(product)}
-                    >
-                      Buy Now
-                    </button>
+                    <button onClick={() => addToCart(product)} className="bg-green-500 text-white py-2 px-4 rounded-md text-sm hover:bg-green-600">Add to Cart</button>
+                    <button onClick={() => buyNow(product)} className="bg-yellow-500 text-white py-2 px-4 rounded-md text-sm hover:bg-yellow-600">Buy Now</button>
                   </div>
                 </div>
               </div>

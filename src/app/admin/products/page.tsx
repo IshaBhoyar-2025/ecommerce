@@ -3,6 +3,9 @@ import Link from "next/link";
 import { DeleteProductButton } from "./components/DeleteProductButton";
 
 export type ProductType = {
+  productImage: string;
+  productPrice: number;
+  categoryKey: string;
   _id: string;
   productTitle: string;
   productDescription: string;

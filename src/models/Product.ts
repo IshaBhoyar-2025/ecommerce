@@ -18,6 +18,6 @@ const productSchema = new Schema({
   },
 });
 
-const Product = models.Product || model('Product', productSchema);
+const Product = models.Product || model('Product', productSchema, 'products');
 
 export default Product;

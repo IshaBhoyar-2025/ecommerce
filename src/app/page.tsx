@@ -1,25 +1,11 @@
-import { getAllProducts, getAllCategories } from './actions';
-import {Home} from "./component";
+// app/page.tsx or app/page.jsx
+import { getAllProducts } from "./admin/products/actions";
+import { getAllCategories } from "./admin/categories/actions";
+import { Home } from "./component";
 
-
-export type ProductType = {
-  _id: string;
-  productTitle: string;
-  productDescription: string;
-  categoryName?: string;
-  subCategoryName?: string;
-};
-
-
-
-export default async function ProductPage() {
-  const products: ProductType[] = await getAllProducts();
-
+export default async function Page() {
+  const products = await getAllProducts();
   const categories = await getAllCategories();
-   
-  return (
-    <Home categories={JSON.parse(JSON.stringify(categories))} products={JSON.parse(JSON.stringify(products))} />
-  
-  )
+
+  return <Home products={products} categories={categories} />;
 }
-  

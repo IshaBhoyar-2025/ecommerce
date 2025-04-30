@@ -71,43 +71,19 @@ export async function deleteProductById(id: string) {
 }
 
 // Get All Products
-export const getAllProducts = async () => {
-  const products = await Product.aggregate([
-    // Join Subcategory
-    {
-      $lookup: {
-        from: 'subcategories',
-        localField: 'subCategoryKey',
-        foreignField: 'subCategoryKey',
-        as: 'subCategory',
-      },
-    },
-    { $unwind: { path: '$subCategory', preserveNullAndEmptyArrays: true } },
-  
-    // Join Category using subCategory.parentCategoryKey
-    {
-      $lookup: {
-        from: 'categories',
-        localField: 'subCategory.parentCategoryKey',
-        foreignField: 'categoryKey',
-        as: 'category',
-      },
-    },
-    { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
-  
-    // Final output
-    {
-      $project: {
-        _id: 1,
-        productTitle: 1,
-        productDescription: 1,
-        subCategoryName: '$subCategory.subCategoryName',
-        categoryName: '$category.categoryName',
-      },
-    },
-  ]);
-  return products;
-};
+export async function getAllProducts() {
+  await connectDB();
+  const products = await Product.find({}).lean();
+
+  return products.map((product: any) => ({
+    ...product,
+    _id: product._id.toString(),
+    categoryId: product.categoryId?.toString(), // if exists
+    subCategoryId: product.subCategoryId?.toString(), // if exists
+    createdAt: product.createdAt?.toISOString?.(),
+    updatedAt: product.updatedAt?.toISOString?.(),
+  }));
+}
 
 
 
