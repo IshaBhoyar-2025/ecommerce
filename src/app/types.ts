@@ -9,7 +9,9 @@ export type ProductType = {
   
   export type CategoryType = {
     _id: string;
-    categoryName: string;
     categoryKey: string;
+    categoryName: string;
+    subcategories: { name: string; key: string }[]; // assuming this structure
   };
+  
   

@@ -198,4 +198,20 @@ export const getProductsBySubCategoryKey = async (subCategoryKey: string) => {
   return await Product.find({ subCategoryKey });
 };
 
-export type { CategoryType };
+export async function getSubcategoriesByCategoryKey(categoryKey: string) {
+  try {
+    await connectDB();
+
+    const subcategories = await SubCategory.find({ parentCategoryKey: categoryKey });
+
+    return subcategories.map((sub) => ({
+      _id: sub._id.toString(),
+      subCategoryName: sub.subCategoryName,
+      subCategoryKey: sub.subCategoryKey,
+    }));
+  } catch (error) {
+    console.error("Failed to get subcategories:", error);
+    return [];
+  }
+}
+
