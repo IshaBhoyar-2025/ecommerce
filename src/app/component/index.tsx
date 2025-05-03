@@ -26,7 +26,9 @@ export function Home({ products, categories }: Props) {
     <div className="min-h-screen font-sans bg-gray-100 text-gray-800">
       {/* Sticky Navbar */}
       <header className="bg-white shadow-md py-4 px-6 fixed w-full z-10 top-0 left-0 flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-blue-600">E-Shop</h1>
+      <Link href="/" className="text-3xl font-bold text-blue-600 hover:opacity-80 transition">
+        E-Shop
+      </Link>
         <div className="flex items-center space-x-6">
           <input
             type="text"

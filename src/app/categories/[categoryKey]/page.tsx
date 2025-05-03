@@ -2,6 +2,8 @@ import {
     getProductsByCategoryKey,
     getSubcategoriesByCategoryKey,
   } from "@/app/actions";
+  import Link from "next/link";
+  import Header from "@/app/components/Header";  
   
   export default async function CategoryPage({
     params,
@@ -14,26 +16,25 @@ import {
   
     return (
       <div className="bg-gray-100 min-h-screen">
-        {/* Top Banner */}
-        <div className="bg-blue-600 text-white w-full py-3 text-center shadow-md">
-          <h2 className="text-lg sm:text-xl font-semibold">
-            {categoryKey}
-          </h2>
-        </div>
+        <Header />
   
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 px-4 py-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 px-4 py-8 pt-28">
           {/* Sidebar */}
           <aside className="w-full md:w-64 bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-lg sm:text-xl font-semibold capitalize mb-4">
+              {categoryKey}
+            </h2>
+  
             <ul className="space-y-3 mb-6">
               {subcategories.map((sub) => (
                 <li key={sub.subCategoryKey}>
-                  <a
-                    href="#"
+                  <Link
+                    href={`/subcategory/${sub.subCategoryKey}`}
                     className="block text-gray-700 hover:text-blue-600 transition font-medium"
                   >
                     {sub.subCategoryName}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -53,7 +54,7 @@ import {
           </aside>
   
           {/* Product Cards */}
-          <section className="flex-1 grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 gap-6">
+          <section className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product: any) => (
               <div
                 key={product._id}
