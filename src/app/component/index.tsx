@@ -26,9 +26,9 @@ export function Home({ products, categories }: Props) {
     <div className="min-h-screen font-sans bg-gray-100 text-gray-800">
       {/* Sticky Navbar */}
       <header className="bg-white shadow-md py-4 px-6 fixed w-full z-10 top-0 left-0 flex justify-between items-center">
-      <Link href="/" className="text-3xl font-bold text-blue-600 hover:opacity-80 transition">
-        E-Shop
-      </Link>
+        <Link href="/" className="text-3xl font-bold text-blue-600 hover:opacity-80 transition">
+          E-Shop
+        </Link>
         <div className="flex items-center space-x-6">
           <input
             type="text"
@@ -78,7 +78,7 @@ export function Home({ products, categories }: Props) {
               onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
               className="w-full h-2 bg-blue-100 rounded-lg"
             />
-            <p className="text-sm text-gray-500 mt-2">₹{priceRange[0]} - ₹{priceRange[1]}</p>
+            <p className="text-sm text-gray-600 mt-2">₹{priceRange[0]} - ₹{priceRange[1]}</p>
           </div>
         </aside>
 
@@ -90,9 +90,16 @@ export function Home({ products, categories }: Props) {
             products.map((product) => (
               <div key={product._id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition transform hover:scale-105">
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-800">{product.productTitle}</h3>
-                  <p className="text-sm text-gray-600">{product.productDescription}</p>
-                  <p className="text-xl font-bold text-blue-600 mt-2">₹{10}</p>
+                  <Link href={`/items/${product._id}`}>
+                  
+                    <h3 className="text-lg font-semibold text-gray-800">{product.productTitle}</h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {product.productDescription.length > 30
+                        ? product.productDescription.slice(0, 30) + "..."
+                        : product.productDescription}
+                    </p>
+                  </Link>
+                  <p className="text-xl font-bold text-blue-600">₹{product.price}</p>
                   <div className="flex gap-2 mt-4">
                     <button onClick={() => addToCart(product)} className="bg-green-500 text-white py-2 px-4 rounded-md text-sm hover:bg-green-600">Add to Cart</button>
                     <button onClick={() => buyNow(product)} className="bg-yellow-500 text-white py-2 px-4 rounded-md text-sm hover:bg-yellow-600">Buy Now</button>

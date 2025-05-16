@@ -22,6 +22,7 @@ type EditProductFormProps = {
   currentTitle: string;
   currentDescription: string;
   currentCategoryKey: string;
+  currentPrice: string;
   currentSubCategoryKey: string;
   categories: Category[];
   subcategories: SubCategory[];
@@ -34,6 +35,7 @@ export  function EditProductForm ({
   productId,
   currentTitle,
   currentDescription,
+  currentPrice,
   currentCategoryKey,
   currentSubCategoryKey,
   subcategories,
@@ -43,6 +45,7 @@ export  function EditProductForm ({
   const [description, setDescription] = useState(currentDescription);
   const [categoryKey, setCategoryKey] = useState(currentCategoryKey);
   const [subCategoryKey, setSubCategoryKey] = useState(currentSubCategoryKey);
+  const [price, setPrice] = useState(currentPrice);//add current price
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -65,7 +68,7 @@ export  function EditProductForm ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const res = await updateProduct(productId, title, description, categoryKey, subCategoryKey);
+    const res = await updateProduct(productId, title, description, price, categoryKey, subCategoryKey);
 
     if (res?.error) {
       setError(res.error);
@@ -131,6 +134,19 @@ export  function EditProductForm ({
         ))}
         
       </select>
+
+       <div>
+      <label className="block mb-1 font-medium text-gray-700">Price</label>
+      <input
+        type="number"
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
+        className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+      
+
     </div>
   
     <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">

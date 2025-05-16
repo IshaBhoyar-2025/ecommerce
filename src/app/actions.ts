@@ -132,6 +132,7 @@ export const getAllProducts = async () => {
         productDescription: 1,
         subCategoryName: '$subCategory.subCategoryName',
         categoryName: '$category.categoryName',
+        price: 1,
       },
     },
   ]);

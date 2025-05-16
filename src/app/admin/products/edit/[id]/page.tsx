@@ -6,9 +6,9 @@ import { getAllCategories } from "@/app/admin/categories/actions";
 import { getAllSubCategories } from "@/app/admin/subcategory/actions";
 
 type EditProductPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
@@ -17,7 +17,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     redirect("/admin/login");
   }
 
-  const rawProduct = await getProductById(params.id);
+  const rawProduct = await getProductById((await params).id);
   if (!rawProduct) {
     return <div className="text-center mt-10 text-red-600">Product not found.</div>;
   }
@@ -27,7 +27,6 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     return <div className="text-center mt-10 text-red-600">Subcategory not found.</div>;
   }
 
-  console.log("Subcategory:", subCategory); // Debugging line to check the output
 
   const product = rawProduct; // Convert Mongoose doc to plain object
   const allCategories = await getAllCategories();
@@ -41,11 +40,12 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
       </h1>
 
       <EditProductForm
-        productId={params.id}
+        productId={(await params).id}
         currentTitle={product.productTitle}
         currentDescription={product.productDescription}
         currentCategoryKey={subCategory.parentCategoryKey}
         currentSubCategoryKey={product.subCategoryKey}
+        currentPrice={product.price}
         categories={allCategories}
         subcategories={allSubcategories}
       />

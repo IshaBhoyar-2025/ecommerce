@@ -12,15 +12,16 @@ import { revalidatePath } from "next/cache"
 export async function addProduct(formData: FormData) {
   const productTitle = formData.get("productTitle")?.toString();
   const productDescription = formData.get("productDescription")?.toString();
+  const price = formData.get("price")?.toString();
   const subCategoryKey = formData.get("subCategoryKey")?.toString();
 
-  if (!productTitle || !productDescription || !subCategoryKey) {
+  if (!productTitle || !productDescription || !subCategoryKey || !price) {
     return { error: "All fields are required." };
   }
 
   try {
     await connectDB();
-    await Product.create({ productTitle, productDescription, subCategoryKey });
+    await Product.create({ productTitle, productDescription, subCategoryKey, price });
     revalidatePath("/admin/products");
     return { success: true };
   } catch (error: any) {
@@ -34,9 +35,11 @@ export async function updateProduct(
   productId: string,
   title: string,
   description: string,
+  price: string,
   categoryKey: string,
   subCategoryKey: string
 ) {
+  console.log("Updating product with price:", price);
   try {
     await connectDB();
     const product = await Product.findByIdAndUpdate(
@@ -44,6 +47,7 @@ export async function updateProduct(
       {
         productTitle: title,
         productDescription: description,
+        price,
         categoryKey,
         subCategoryKey,
       },

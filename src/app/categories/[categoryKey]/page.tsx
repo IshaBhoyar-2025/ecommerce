@@ -61,13 +61,19 @@ import {
                 className="bg-white rounded-lg shadow-md p-4 flex flex-col justify-between hover:shadow-lg transition"
               >
                 <div>
+                  <Link href={`/items/${product._id}`}>
+                  
+                 
                   <h3 className="text-lg font-bold text-gray-900 mb-1">
                     {product.productTitle}
                   </h3>
                   <p className="text-sm text-gray-600 mb-2">
                     {product.productDescription}
                   </p>
-                  <p className="text-xl font-bold text-blue-600">₹10</p>
+                  <p className="text-xl font-bold text-blue-600">
+                    ₹{product.price}
+                  </p>
+                  </Link>
                 </div>
                 <div className="mt-4 flex gap-2">
                   <button className="w-1/2 bg-green-500 hover:bg-green-600 text-white text-sm py-2 rounded-md font-semibold">

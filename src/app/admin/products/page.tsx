@@ -9,6 +9,8 @@ export type ProductType = {
   _id: string;
   productTitle: string;
   productDescription: string;
+  price: number;
+  subCategoryKey: string; 
   categoryName?: string;
   subCategoryName?: string;
 };
@@ -17,8 +19,6 @@ export type ProductType = {
 
 export default async function ProductPage() {
   const products: ProductType[] = await getAllProducts();
-
-  console.log(products, "products");
 
   return (
     <div className="p-8">
@@ -47,6 +47,7 @@ export default async function ProductPage() {
   <tr className="bg-gray-100">
     <th className="px-4 py-2 border">Product Title</th>
     <th className="px-4 py-2 border">Product Description</th>
+    <th className="px-4 py-2 border"> Price</th>
     <th className="px-4 py-2 border">Category Name</th>
     <th className="px-4 py-2 border">Subcategory Name</th>
     <th className="px-4 py-2 border">Actions</th>
@@ -57,8 +58,10 @@ export default async function ProductPage() {
     <tr key={product._id} className="text-center">
       <td className="px-4 py-2 border">{product.productTitle}</td>
       <td className="px-4 py-2 border">{product.productDescription}</td>
+      <td className="px-4 py-2 border">{product.price}</td>
       <td className="px-4 py-2 border">{product.categoryName }</td>
       <td className="px-4 py-2 border">{product.subCategoryName}</td>
+
       <td className="px-4 py-2 border space-x-2">
         <Link
           href={`/admin/products/edit/${product._id}`}

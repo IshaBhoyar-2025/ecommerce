@@ -25,6 +25,7 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
     productTitle: '',
     productDescription: '',
     subCategoryKey: '',
+    price: '',
   });
 
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -44,7 +45,7 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.productTitle || !formData.productDescription || !formData.subCategoryKey) {
+    if (!formData.productTitle || !formData.productDescription || !formData.subCategoryKey || !formData.price) {  
       setMessage("All fields are required.");
       return;
     }
@@ -53,8 +54,10 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
     data.set('productTitle', formData.productTitle);
     data.set('productDescription', formData.productDescription);
     data.set('subCategoryKey', formData.subCategoryKey);
+    data.set('price', formData.price);
 
-    const res = await addProduct(data);
+    const res = await addProduct(data); 
+    
 
     if (res.error) {
       setMessage(res.error);
@@ -112,6 +115,15 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
           </option>
         ))}
       </select>
+
+      <input
+        type="text"
+        value={formData.price}
+        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+        placeholder="Product Price"
+        className="w-full px-4 py-2 border rounded"
+        required
+      />
 
       <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
         Add Product
