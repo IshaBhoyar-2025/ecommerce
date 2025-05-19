@@ -1,6 +1,18 @@
 import mongoose, { Schema, model, models } from 'mongoose';
 
-const productSchema = new Schema({
+export interface IProduct {
+  _id: string;
+  productTitle: string;
+  productDescription: string;
+  subCategoryKey: string;
+  price: number;
+  productImages: {
+    filename: string;
+    thumb: string;
+  }[];
+} 
+
+const productSchema = new Schema<IProduct>({
   productTitle: {
     type: String,
     required: true,
@@ -21,8 +33,21 @@ const productSchema = new Schema({
     required: true,
     min: 0,
   },
+  productImages: [
+    {
+      filename: {
+        type: String,
+        required: true,
+      },
+      thumb: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
+
 });
 
-const Product = models.Product || model('Product', productSchema, 'products');
+const Product = models.Product || model<IProduct>('Product', productSchema, 'products');
 
 export default Product;
