@@ -1,22 +1,68 @@
 import { connectDB } from "@/lib/mongodb";
 import products from "@/models/Product";
+import mongoose from "mongoose";
 
 export async function getProductById(productId: string) {
    await connectDB(); // Ensure connectDB returns MongoClient
-   const productData = await products.findById(productId);
-   if (!productData) {
-      throw new Error("Product not found");
-   }
+   const productData = await products.aggregate([
+      {
+         $match: {
+            _id: new mongoose.Types.ObjectId(productId),
+         },
+      },
+      {
+         $lookup: {
+            from: "subcategories",
+            localField: "subCategoryKey",
+            foreignField: "subCategoryKey",
+            as: "subcategory",
+         },
+      },
+      {
+         $unwind: "$subcategory",
+      },
+      {
+         $lookup: {
+            from: "categories",
+            localField: "subcategory.parentCategoryKey",
+            foreignField: "categoryKey",
+            as: "category",
+         },
+      },
+      {
+         $unwind: "$category",
+      },
+      {
+         $project: {
+            _id: 1,
+            productTitle: 1,
+            productDescription: 1,
+            price: 1,
+            subCategoryKey: 1,
+         subCategoryName: '$subCategory.subCategoryName',
+        categoryName: '$category.categoryName',
+         categoryKey: '$category.categoryKey',
+            productImages: 1,
+         },
+      },
+   ]);
+
+   console.log("Product Data:", productData);
 
 
+   const product = productData[0];
+   if (!product) return null;
 
    return {
-      _id: productData._id.toString(),
-      productTitle: productData.productTitle,
-      productDescription: productData.productDescription,
-      price: productData.price,
-      subCategoryKey: productData.subCategoryKey,
-      subCategoryName: productData.subCategoryName,
+      _id: product._id.toString(),
+      productTitle: product.productTitle,
+      productDescription: product.productDescription,
+      price: product.price,
+      subCategoryKey: product.subCategoryKey,
+      subCategoryName: product.subCategoryName,
+      categoryKey: product.categoryKey,
+      categoryName: product.categoryName,
+      productImages: product.productImages,
    };
 
 }

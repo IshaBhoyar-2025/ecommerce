@@ -133,6 +133,7 @@ export const getAllProducts = async () => {
         subCategoryName: '$subCategory.subCategoryName',
         categoryName: '$category.categoryName',
         price: 1,
+        productImages: 1,
       },
     },
   ]);

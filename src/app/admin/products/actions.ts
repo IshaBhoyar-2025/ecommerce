@@ -104,9 +104,14 @@ export async function getAllProducts() {
         subCategoryName: '$subCategory.subCategoryName',
         categoryName: '$category.categoryName',
         price: 1,
+        productImages: 1,
+        subCategoryKey: 1,
+        categoryKey: 1,
       },
     }
   ]);
+
+  
 
 
   return products.map((product: any) => ({
@@ -118,6 +123,7 @@ export async function getAllProducts() {
     categoryKey: product.categoryKey,
     categoryName: product.categoryName,
     subCategoryName: product.subCategoryName,
+    productImages: product.productImages,
 }
   ));
 } 

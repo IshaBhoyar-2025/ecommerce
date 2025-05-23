@@ -5,7 +5,7 @@ import Link from "next/link";
 export default async function ItemDetailPage({
   params,
 }: {
-  params: { itemId: string };
+  params: Promise<{ itemId: string }>;
 }) {
   type Product = {
     _id: string;
@@ -14,10 +14,10 @@ export default async function ItemDetailPage({
     price: string | number;
     subCategoryKey: string;
     subCategoryName: string;
-    image?: string;
+    productImages: { filename: string; thumb: string }[];
   };
 
-  const product: Product | null = await getProductById(params.itemId);
+  const product: Product | null = await getProductById((await params).itemId);
 
   if (!product) {
     return (
@@ -54,17 +54,11 @@ export default async function ItemDetailPage({
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.productTitle}</h1>
         <p className="text-gray-600 mb-4">{product.productDescription}</p>
        <p className="text-xl text-blue-600 font-semibold mb-4">₹{product.price}</p>
+         
+       
 
 
-        {product.image && (
-          <img
-            src={product.image}
-            alt={product.productTitle}
-            className="w-full max-h-[400px] object-cover mb-4 rounded"
-          />
-        )}
-
-        <Item productId={product._id.toString()} />
+        <Item productId={product._id.toString()} productImages={product.productImages} />
       </main>
     </div>
   );
