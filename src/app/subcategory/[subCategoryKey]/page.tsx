@@ -20,6 +20,7 @@ export default async function SubcategoryPage({
     Array.isArray(categoryKeyArray) && categoryKeyArray.length > 0
       ? categoryKeyArray[0]
       : "";
+
   const subcategories = await getSubcategoriesByCategoryKey(categoryKey);
 
   return (
@@ -36,8 +37,8 @@ export default async function SubcategoryPage({
                 <a
                   href={`/subcategory/${sub.subCategoryKey}`}
                   className={`block text-gray-700 hover:text-blue-600 transition font-medium ${sub.subCategoryKey === subCategoryKey
-                      ? "text-blue-600 font-bold"
-                      : ""
+                    ? "text-blue-600 font-bold"
+                    : ""
                     }`}
                 >
                   {sub.subCategoryName}
@@ -70,6 +71,12 @@ export default async function SubcategoryPage({
             >
               <Link href={`/items/${product._id}`}>
                 <div>
+                  <img
+                    src={`/uploads/${product.productImages?.[0]?.thumb || "no-image.jpg"}`}
+                    alt={product.productTitle}
+                    className="w-full h-48 object-cover rounded-md mb-2"
+                  />
+
                   <h3 className="text-lg font-bold text-gray-900 mb-1">
                     {product.productTitle}
                   </h3>
@@ -80,19 +87,16 @@ export default async function SubcategoryPage({
                   </p>
 
                   <p className="text-xl font-bold text-blue-600">
-                    {product.price}
+                    ₹{product.price}
                   </p>
                 </div>
               </Link>
+
               <div className="mt-4 flex gap-2">
-                <button
-                  className="w-1/2 bg-green-500 hover:bg-green-600 text-white text-sm py-2 rounded-md font-semibold"
-                >
+                <button className="w-1/2 bg-green-500 hover:bg-green-600 text-white text-sm py-2 rounded-md font-semibold">
                   Add to Cart
                 </button>
-                <button
-                  className="w-1/2 bg-yellow-400 hover:bg-yellow-500 text-white text-sm py-2 rounded-md font-semibold"
-                >
+                <button className="w-1/2 bg-yellow-400 hover:bg-yellow-500 text-white text-sm py-2 rounded-md font-semibold">
                   Buy Now
                 </button>
               </div>

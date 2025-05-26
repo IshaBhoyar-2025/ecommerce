@@ -30,6 +30,7 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
 
   const [selectedCategory, setSelectedCategory] = useState('');
   const [filteredSubcategories, setFilteredSubcategories] = useState<SubCategory[]>([]);
+  const [productImage, setProductImage] = useState<File | null>(null);  
   const [message, setMessage] = useState('');
   const router = useRouter();
 
@@ -38,15 +39,19 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
       (sub) => sub.parentCategoryKey === selectedCategory
     );
     setFilteredSubcategories(filtered);
-    setFormData({ ...formData, subCategoryKey: '' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory]);
+    setFormData((prev) => ({ ...prev, subCategoryKey: '' }));
+  }, [selectedCategory, subcategories]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.productTitle || !formData.productDescription || !formData.subCategoryKey || !formData.price) {  
-      setMessage("All fields are required.");
+    if (
+      !formData.productTitle ||
+      !formData.productDescription ||
+      !formData.subCategoryKey ||
+      !formData.price
+    ) {
+      setMessage('All fields are required.');
       return;
     }
 
@@ -56,8 +61,11 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
     data.set('subCategoryKey', formData.subCategoryKey);
     data.set('price', formData.price);
 
-    const res = await addProduct(data); 
-    
+    if (productImage) {
+      data.set('productImages', productImage);
+    }
+
+    const res = await addProduct(data);
 
     if (res.error) {
       setMessage(res.error);
@@ -67,7 +75,10 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-6 bg-white shadow-md rounded-md">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 max-w-md mx-auto p-6 bg-white shadow-md rounded-md"
+    >
       <h1 className="text-2xl font-bold mb-4">Add Product</h1>
 
       <input
@@ -81,7 +92,9 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
 
       <textarea
         value={formData.productDescription}
-        onChange={(e) => setFormData({ ...formData, productDescription: e.target.value })}
+        onChange={(e) =>
+          setFormData({ ...formData, productDescription: e.target.value })
+        }
         placeholder="Product Description"
         className="w-full px-4 py-2 border rounded"
         rows={4}
@@ -125,7 +138,21 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
         required
       />
 
-      <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          if (e.target.files && e.target.files[0]) {
+            setProductImage(e.target.files[0]);
+          }
+        }}
+        className="w-full"
+      />
+
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+      >
         Add Product
       </button>
 

@@ -190,6 +190,7 @@ export const getProductsByCategoryKey = async (categoryKey: string) => {
         productDescription: 1,
         price: 1,
         subCategoryName: '$subCategory.subCategoryName',
+          productImages: 1,
       },
     },
   ]);
@@ -216,4 +217,6 @@ export async function getSubcategoriesByCategoryKey(categoryKey: string) {
     return [];
   }
 }
+
+
 

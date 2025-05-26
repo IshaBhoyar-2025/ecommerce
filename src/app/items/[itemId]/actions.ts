@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/mongodb";
 import products from "@/models/Product";
 import mongoose from "mongoose";
 
+
 export async function getProductById(productId: string) {
    await connectDB(); // Ensure connectDB returns MongoClient
    const productData = await products.aggregate([

@@ -101,11 +101,11 @@ export function Home({ products, categories }: Props) {
                         ? product.productDescription.slice(0, 30) + "..."
                         : product.productDescription}
                     </p>
-                    <img
-                      src={product.productImages?.[0]?.thumb}
+                    {product.productImages?.[0]?.thumb && <img
+                      src={`/uploads/${product.productImages?.[0]?.thumb}`}
                       alt={product.productTitle}
                       className="w-full h-48 object-cover rounded-md mb-4"
-                    />
+                    />}
                   </Link>
                   <p className="text-xl font-bold text-blue-600">₹{product.price}</p>
                   

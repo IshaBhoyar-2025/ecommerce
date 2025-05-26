@@ -3,25 +3,56 @@
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import SubCategory from "@/models/SubCategory";
-import { revalidatePath } from "next/cache"
+import { revalidatePath } from "next/cache";
+import fs from "fs";
+import path from "path";
+import sharp from "sharp";
+import { v4 as uuidv4 } from "uuid";
 
-
-
-
-// Add Product
+// Add Product with Images
 export async function addProduct(formData: FormData) {
   const productTitle = formData.get("productTitle")?.toString();
   const productDescription = formData.get("productDescription")?.toString();
   const price = formData.get("price")?.toString();
   const subCategoryKey = formData.get("subCategoryKey")?.toString();
+  const files = formData.getAll("productImages") as File[];
 
   if (!productTitle || !productDescription || !subCategoryKey || !price) {
     return { error: "All fields are required." };
   }
 
+  const images = [];
+
+  for (const file of files) {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const uniqueName = `${uuidv4()}.webp`;
+
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const fullPath = path.join(uploadsDir, uniqueName);
+    const thumbPath = path.join(uploadsDir, `thumb-${uniqueName}`);
+
+    fs.mkdirSync(uploadsDir, { recursive: true });
+
+    await sharp(buffer).resize(800).toFormat("webp").toFile(fullPath);
+    await sharp(buffer).resize(300).toFormat("webp").toFile(thumbPath);
+
+    images.push({
+      filename: uniqueName,
+      thumb: `thumb-${uniqueName}`,
+    });
+  }
+
   try {
     await connectDB();
-    await Product.create({ productTitle, productDescription, subCategoryKey, price });
+    await Product.create({
+      productTitle,
+      productDescription,
+      subCategoryKey,
+      price,
+      productImages: images,
+    });
+
     revalidatePath("/admin/products");
     return { success: true };
   } catch (error: any) {
@@ -29,38 +60,65 @@ export async function addProduct(formData: FormData) {
   }
 }
 
-// actions/products.ts
-
+// Update Product with optional image update
 export async function updateProduct(
   productId: string,
-  title: string,
-  description: string,
-  price: string,
-  categoryKey: string,
-  subCategoryKey: string
+  formData: FormData
 ) {
-  console.log("Updating product with price:", price);
+  const title = formData.get("productTitle")?.toString();
+  const description = formData.get("productDescription")?.toString();
+  const price = formData.get("price")?.toString();
+  const subCategoryKey = formData.get("subCategoryKey")?.toString();
+  const files = formData.getAll("productImages") as File[];
+
+  if (!title || !description || !price || !subCategoryKey) {
+    return { error: "All fields are required." };
+  }
+
+  await connectDB();
+  const existing = await Product.findById(productId);
+
+  let updatedImages = existing.productImages;
+
+  if (files.length > 0 && files[0].size > 0) {
+    updatedImages = [];
+
+    for (const file of files) {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const uniqueName = `${uuidv4()}.webp`;
+
+      const uploadsDir = path.join(process.cwd(), "public", "uploads");
+      const fullPath = path.join(uploadsDir, uniqueName);
+      const thumbPath = path.join(uploadsDir, `thumb-${uniqueName}`);
+
+      fs.mkdirSync(uploadsDir, { recursive: true });
+
+      await sharp(buffer).resize(800).toFormat("webp").toFile(fullPath);
+      await sharp(buffer).resize(300).toFormat("webp").toFile(thumbPath);
+
+      updatedImages.push({
+        filename: `/uploads/${uniqueName}`,
+        thumb: `/uploads/thumb-${uniqueName}`,
+      });
+    }
+  }
+
   try {
-    await connectDB();
-    const product = await Product.findByIdAndUpdate(
-      productId,
-      {
-        productTitle: title,
-        productDescription: description,
-        price,
-        categoryKey,
-        subCategoryKey,
-      },
-      { new: true }
-    );
+    await Product.findByIdAndUpdate(productId, {
+      productTitle: title,
+      productDescription: description,
+      price,
+      subCategoryKey,
+      productImages: updatedImages,
+    });
+
     revalidatePath("/admin/products");
-    return { success: true, product };
+    return { success: true };
   } catch (error: any) {
     return { error: "Failed to update product. " + error.message };
   }
 }
-
-
 
 // Delete Product
 export async function deleteProductById(id: string) {
@@ -77,7 +135,7 @@ export async function deleteProductById(id: string) {
 // Get All Products
 export async function getAllProducts() {
   await connectDB();
- const products = await Product.aggregate([
+  const products = await Product.aggregate([
     {
       $lookup: {
         from: 'subcategories',
@@ -111,9 +169,6 @@ export async function getAllProducts() {
     }
   ]);
 
-  
-
-
   return products.map((product: any) => ({
     _id: product._id.toString(),
     productTitle: product.productTitle,
@@ -124,12 +179,8 @@ export async function getAllProducts() {
     categoryName: product.categoryName,
     subCategoryName: product.subCategoryName,
     productImages: product.productImages,
+  }));
 }
-  ));
-} 
-
-
-
 
 // Get Product By ID
 export async function getProductById(id: string) {
