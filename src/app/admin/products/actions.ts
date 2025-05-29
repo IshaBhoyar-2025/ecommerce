@@ -81,8 +81,6 @@
     let updatedImages = existing.productImages;
 
     if (files.length > 0 && files[0].size > 0) {
-      updatedImages = [];
-
       for (const file of files) {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);

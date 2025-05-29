@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { addProduct } from '../../actions'; // Adjust the import path as necessary
+import { addProduct } from '../../actions'; // Adjust as needed
 
 type Category = {
   categoryName: string;
@@ -30,7 +30,7 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
 
   const [selectedCategory, setSelectedCategory] = useState('');
   const [filteredSubcategories, setFilteredSubcategories] = useState<SubCategory[]>([]);
-  const [productImage, setProductImage] = useState<File | null>(null);  
+  const [productImages, setProductImages] = useState<File[]>([]);
   const [message, setMessage] = useState('');
   const router = useRouter();
 
@@ -61,9 +61,9 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
     data.set('subCategoryKey', formData.subCategoryKey);
     data.set('price', formData.price);
 
-    if (productImage) {
-      data.set('productImages', productImage);
-    }
+    productImages.forEach((file) => {
+      data.append('productImages', file);
+    });
 
     const res = await addProduct(data);
 
@@ -141,9 +141,10 @@ export function AddProduct({ categories, subcategories }: AddProductProps) {
       <input
         type="file"
         accept="image/*"
+        multiple
         onChange={(e) => {
-          if (e.target.files && e.target.files[0]) {
-            setProductImage(e.target.files[0]);
+          if (e.target.files) {
+            setProductImages(Array.from(e.target.files));
           }
         }}
         className="w-full"
