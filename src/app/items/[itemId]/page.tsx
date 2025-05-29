@@ -5,19 +5,9 @@ import Link from "next/link";
 export default async function ItemDetailPage({
   params,
 }: {
-  params: Promise<{ itemId: string }>;
+  params: { itemId: string };
 }) {
-  type Product = {
-    _id: string;
-    productTitle: string;
-    productDescription: string;
-    price: string | number;
-    subCategoryKey: string;
-    subCategoryName: string;
-    productImages: { filename: string; thumb: string }[];
-  };
-
-  const product: Product | null = await getProductById((await params).itemId);
+  const product = await getProductById(params.itemId);
 
   if (!product) {
     return (
@@ -34,12 +24,10 @@ export default async function ItemDetailPage({
           E-Shop
         </Link>
         <div className="flex items-center space-x-6">
-          {/* Use a disabled input or separate this to a client component if it should be editable */}
           <input
             type="text"
             placeholder="Search for products"
             className="p-2 border rounded-md w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
-
             readOnly
           />
           <div className="flex space-x-4">
@@ -53,12 +41,9 @@ export default async function ItemDetailPage({
       <main className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6 mt-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.productTitle}</h1>
         <p className="text-gray-600 mb-4">{product.productDescription}</p>
-       <p className="text-xl text-blue-600 font-semibold mb-4">₹{product.price}</p>
-         
-       
+        <p className="text-xl text-blue-600 font-semibold mb-4">₹{product.price}</p>
 
-
-        <Item productId={product._id.toString()} productImages={product.productImages} />
+        <Item productId={product._id} productImages={product.productImages} />
       </main>
     </div>
   );

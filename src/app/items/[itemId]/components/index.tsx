@@ -1,4 +1,3 @@
-// app/components/ProductActions.tsx
 "use client";
 
 import Image from "next/image";
@@ -6,24 +5,20 @@ import Image from "next/image";
 interface Props {
   productId: string;
   productImages: { filename: string; thumb: string }[];
-
 }
 
-export function Item({ productId, productImages}: Props) {
+export function Item({ productId, productImages }: Props) {
   const handleAddToCart = () => {
-    console.log("Add to Cart:", { productId,  });
-    // TODO: Add product to cart logic here
+    console.log("Add to Cart:", { productId });
   };
 
   const handleBuyNow = () => {
-    console.log("Buy Now:", { productId, });
-    // TODO: Handle buy now logic here
+    console.log("Buy Now:", { productId });
   };
 
   return (
     <div className="mt-6">
-       
-       {productImages.map((image) => (
+      {productImages.map((image) => (
         <Image
           key={image.filename}
           src={image.thumb}
@@ -33,7 +28,6 @@ export function Item({ productId, productImages}: Props) {
           className="rounded-lg shadow-md mb-4"
         />
       ))}
-
 
       <div className="flex gap-4">
         <button
