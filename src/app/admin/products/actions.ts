@@ -63,7 +63,9 @@
   // Update Product with optional image update
   export async function updateProduct(
     productId: string,
-    formData: FormData
+    formData: FormData,
+    images: { filename: string; thumb: string }[] = []
+    
   ) {
     const title = formData.get("productTitle")?.toString();
     const description = formData.get("productDescription")?.toString();
@@ -76,9 +78,8 @@
     }
 
     await connectDB();
-    const existing = await Product.findById(productId);
-
-    let updatedImages = existing.productImages;
+    let updatedImages = images || [];
+  
 
     if (files.length > 0 && files[0].size > 0) {
       for (const file of files) {

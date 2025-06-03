@@ -43,6 +43,7 @@ const productSchema = new Schema<IProduct>({
         type: String,
         required: true,
       },
+      _id: false,
     },
   ],
 

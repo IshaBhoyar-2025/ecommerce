@@ -32,6 +32,11 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   const allCategories = await getAllCategories();
   const allSubcategories = await getAllSubCategories();
   
+  console.log("Product:", product);
+  const productImages = product.productImages.map((img: any) => ({
+    filename: img.filename,
+    thumb: img.thumb,
+  }));
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
@@ -48,6 +53,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         currentPrice={product.price}
         categories={allCategories}
         subcategories={allSubcategories}
+        productImages={productImages}
       />
     </div>
   );

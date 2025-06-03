@@ -1,9 +1,9 @@
-// components/EditProductForm.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { updateProduct } from "@/app/admin/products/actions";
 import { useRouter } from "next/navigation";
+import { AiFillCloseCircle } from "react-icons/ai";
 
 type Category = {
   categoryName: string;
@@ -23,18 +23,23 @@ type EditProductFormProps = {
   currentCategoryKey: string;
   currentPrice: string;
   currentSubCategoryKey: string;
+   productImages: {
+    filename: string;
+    thumb: string;
+  }[];
   categories: Category[];
   subcategories: SubCategory[];
 };
 
 export function EditProductForm({
-  categories,
   productId,
   currentTitle,
   currentDescription,
-  currentPrice,
   currentCategoryKey,
+  currentPrice,
   currentSubCategoryKey,
+  productImages,
+  categories,
   subcategories,
 }: EditProductFormProps) {
   const [title, setTitle] = useState(currentTitle);
@@ -43,6 +48,8 @@ export function EditProductForm({
   const [subCategoryKey, setSubCategoryKey] = useState(currentSubCategoryKey);
   const [price, setPrice] = useState(currentPrice);
   const [error, setError] = useState("");
+   const [images, setImages] = useState(productImages);
+
   const [filteredSubcategories, setFilteredSubcategories] = useState<SubCategory[]>([]);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -69,8 +76,7 @@ export function EditProductForm({
       }
     }
 
-    const res = await updateProduct(productId, formData);
-
+    const res = await updateProduct(productId, formData, images);
     if (res?.error) {
       setError(res.error);
     } else {
@@ -80,6 +86,11 @@ export function EditProductForm({
 
   const handleCancel = () => {
     router.push("/admin/products");
+  };
+
+
+  const handleDelete = (indexToDelete: number) => {
+    setImages(images.filter((_, idx) => idx !== indexToDelete));
   };
 
   return (
@@ -148,6 +159,31 @@ export function EditProductForm({
           className="w-full border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
+
+       <div>
+      <label className="block mb-1 font-medium text-gray-700">Current Images</label>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {images.map((image, index) => (
+          <div key={index} className="relative">
+            {/* Delete Icon positioned absolutely above the image */}
+            <button
+              onClick={() => handleDelete(index)}
+              className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow-md hover:bg-red-100"
+              aria-label={`Delete image ${index + 1}`}
+              type="button"
+            >
+              <AiFillCloseCircle className="text-red-600 w-6 h-6" />
+            </button>
+
+            <img
+              src={`/uploads/${image.thumb}`}
+              alt={`Product ${index + 1}`}
+              className="w-full h-auto rounded-md border"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
 
       <div>
         <label className="block mb-1 font-medium text-gray-700">Upload New Images</label>
