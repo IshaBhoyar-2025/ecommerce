@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 
 // types.ts
 export type ProductType = {
-
   _id: string;
   productTitle: string;
   productDescription: string;

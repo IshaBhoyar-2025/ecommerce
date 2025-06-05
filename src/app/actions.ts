@@ -9,7 +9,7 @@ import Product from "@/models/Product";
 import Category from "@/models/Categories";
 import { CategoryType } from "./admin/categories/actions";
 import SubCategory from "@/models/SubCategory";
-
+import mongoose from "mongoose";
 
 // Register User
 export async function registerUser(formData: FormData) {
@@ -101,10 +101,16 @@ export async function updateProfile(formData: FormData) {
   return { success: "Profile updated successfully" };
 }
 
-export const getAllProducts = async () => {
+// Get All Products
+export const getAllProducts = async (storedCart: string[]) => {
   await connectDB();
 
   const products = await Product.aggregate([
+    {
+      $match: {
+        _id: { $in: storedCart.map((id) => new mongoose.Types.ObjectId(id)) },
+      },
+    },
     {
       $lookup: {
         from: 'subcategories',
@@ -114,7 +120,6 @@ export const getAllProducts = async () => {
       },
     },
     { $unwind: { path: '$subCategory', preserveNullAndEmptyArrays: true } },
-  
     {
       $lookup: {
         from: 'categories',
@@ -124,8 +129,7 @@ export const getAllProducts = async () => {
       },
     },
     { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
-  
-   {
+    {
       $project: {
         _id: 1,
         productTitle: 1,
@@ -141,6 +145,8 @@ export const getAllProducts = async () => {
   return products;
 };
 
+
+// Get All Categories
 export async function getAllCategories(): Promise<CategoryType[]> {
   try {
     await connectDB();
@@ -156,15 +162,13 @@ export async function getAllCategories(): Promise<CategoryType[]> {
   }
 }
 
-
-
-
+// Get Subcategories By Category Key
 export const getSubCategoriesByCategoryKey = async (categoryKey: string) => {
   await connectDB();
   return await SubCategory.find({ parentCategoryKey: categoryKey });
 };
 
-
+// Get Products By Category Key
 export const getProductsByCategoryKey = async (categoryKey: string) => {
   await connectDB();
 
@@ -190,17 +194,20 @@ export const getProductsByCategoryKey = async (categoryKey: string) => {
         productDescription: 1,
         price: 1,
         subCategoryName: '$subCategory.subCategoryName',
-          productImages: 1,
+        productImages: 1,
       },
     },
   ]);
 };
+
+// Get Products By Subcategory Key
 export const getProductsBySubCategoryKey = async (subCategoryKey: string) => {
   await connectDB();
 
   return await Product.find({ subCategoryKey });
 };
 
+// Get Subcategories for Dropdown
 export async function getSubcategoriesByCategoryKey(categoryKey: string) {
   try {
     await connectDB();
@@ -218,5 +225,24 @@ export async function getSubcategoriesByCategoryKey(categoryKey: string) {
   }
 }
 
+// ✅ Implemented: Get Cart Products By IDs
+export async function getCartProductsByIds(storedCart: string[]) {
+  if (!storedCart || storedCart.length === 0) return [];
 
+  await connectDB();
 
+  const objectIds = storedCart.map(id => new mongoose.Types.ObjectId(id));
+
+  const products = await Product.find({ _id: { $in: objectIds } });
+
+  console.log("Fetched products:", products);
+
+  return products.map((product) => ({
+    _id: product._id.toString(),
+    productTitle: product.productTitle,
+    productDescription: product.productDescription,
+    price: product.price,
+    productImages: product.productImages,
+  }));
+
+}

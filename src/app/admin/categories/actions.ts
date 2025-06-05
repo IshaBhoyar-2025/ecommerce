@@ -100,12 +100,12 @@ export async function deleteCategoryById(id: string) {
 
 export async function getAllCategories() {
   await connectDB();
-  const categories = await Category.find({}).lean();
+  const categories = await Category.find({}).lean<CategoryType[]>();
 
-  return categories.map((category: any) => ({
+  return categories.map((category) => ({
     ...category,
     _id: category._id.toString(),
-    createdAt: category.createdAt?.toISOString?.(),
-    updatedAt: category.updatedAt?.toISOString?.(),
+    createdAt: (category as any).createdAt?.toISOString?.(),
+    updatedAt: (category as any).updatedAt?.toISOString?.(),
   }));
 }

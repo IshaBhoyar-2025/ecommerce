@@ -23,7 +23,7 @@ type EditProductFormProps = {
   currentCategoryKey: string;
   currentPrice: string;
   currentSubCategoryKey: string;
-   productImages: {
+  productImages: {
     filename: string;
     thumb: string;
   }[];
@@ -48,7 +48,7 @@ export function EditProductForm({
   const [subCategoryKey, setSubCategoryKey] = useState(currentSubCategoryKey);
   const [price, setPrice] = useState(currentPrice);
   const [error, setError] = useState("");
-   const [images, setImages] = useState(productImages);
+  const [images, setImages] = useState(productImages);
 
   const [filteredSubcategories, setFilteredSubcategories] = useState<SubCategory[]>([]);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -160,30 +160,30 @@ export function EditProductForm({
         />
       </div>
 
-       <div>
-      <label className="block mb-1 font-medium text-gray-700">Current Images</label>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {images.map((image, index) => (
-          <div key={index} className="relative">
-            {/* Delete Icon positioned absolutely above the image */}
-            <button
-              onClick={() => handleDelete(index)}
-              className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow-md hover:bg-red-100"
-              aria-label={`Delete image ${index + 1}`}
-              type="button"
-            >
-              <AiFillCloseCircle className="text-red-600 w-6 h-6" />
-            </button>
+      <div>
+        <label className="block mb-1 font-medium text-gray-700">Current Images</label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {images.map((image, index) => (
+            <div key={index} className="relative">
+              {/* Delete Icon positioned absolutely above the image */}
+              <button
+                onClick={() => handleDelete(index)}
+                className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow-md hover:bg-red-100"
+                aria-label={`Delete image ${index + 1}`}
+                type="button"
+              >
+                <AiFillCloseCircle className="text-red-600 w-6 h-6" />
+              </button>
 
-            <img
-              src={`/uploads/${image.thumb}`}
-              alt={`Product ${index + 1}`}
-              className="w-full h-auto rounded-md border"
-            />
-          </div>
-        ))}
+              <img
+                src={`/uploads/${image.thumb}`}
+                alt={`Product ${index + 1}`}
+                className="w-full h-auto rounded-md border"
+              />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
 
       <div>
         <label className="block mb-1 font-medium text-gray-700">Upload New Images</label>

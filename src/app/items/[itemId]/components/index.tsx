@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface Props {
   productId: string;
@@ -8,12 +9,25 @@ interface Props {
 }
 
 export function Item({ productId, productImages }: Props) {
+  const router = useRouter();
+
   const handleAddToCart = () => {
-    console.log("Add to Cart:", { productId });
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    // Avoid duplicates
+    const updatedCart = [
+      ...cart.filter((item: string) => item !== productId),
+      productId,
+    ];
+
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    router.push("/cart"); // Redirect to cart page
   };
 
   const handleBuyNow = () => {
     console.log("Buy Now:", { productId });
+    // Implement direct checkout logic here later
   };
 
   return (
