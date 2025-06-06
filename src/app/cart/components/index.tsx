@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getCartProductsByIds } from '@/app/cart/actions';
 import { ProductType } from '@/app/types';
 import Header from "@/app/components/Header";
+import { getCurrentUser } from '@/app/actions'; // Adjust the import path as necessary
 
 export function Cart() {
   const router = useRouter();
@@ -13,8 +14,17 @@ export function Cart() {
   const [savedForLater, setSavedForLater] = useState<ProductType[]>([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    setIsLoggedIn(!!token);
+    // Check if user is logged in
+     async function userLoggedIn() {
+            const user = await getCurrentUser();
+            if (user) {
+                setIsLoggedIn(true);
+            } else {
+                setIsLoggedIn(false);
+            }
+        }
+
+    userLoggedIn();
 
     const fetchCartProducts = async () => {
       const storedCart: string[] = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -101,7 +111,7 @@ export function Cart() {
     if (!isLoggedIn) {
       router.push('/login');
     } else {
-      router.push('/checkout'); // Replace with your actual checkout route
+      router.push('/shipping'); // Replace with your actual checkout route
     }
   };
 

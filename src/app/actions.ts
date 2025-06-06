@@ -84,7 +84,7 @@ export async function getCurrentUser() {
 // Logout User
 export async function logoutUser() {
   (await cookies()).delete("user");
-  redirect("/login");
+  redirect("/");
 }
 
 // Update Profile
