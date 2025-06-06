@@ -1,15 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [cart, setCart] = useState([]); // Replace with actual cart logic if needed
+  const [cart, setCart] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Retrieve cart data from localStorage if any
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      setCart(JSON.parse(storedCart));
+    }
+  }, []);
 
   return (
     <header className="bg-white shadow-md py-4 px-6 fixed w-full z-10 top-0 left-0 flex justify-between items-center">
-      {/* Logo with Link to Homepage */}
+      {/* Logo */}
       <Link href="/" className="text-3xl font-bold text-blue-600 hover:opacity-80 transition">
         E-Shop
       </Link>
