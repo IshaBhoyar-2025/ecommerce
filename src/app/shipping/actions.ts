@@ -2,7 +2,7 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
-import ShippingAddress from "@/models/ShippingAddress";
+import ShippingAddress, { ShippingAddressType } from "@/models/ShippingAddress";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "../actions";
 
@@ -24,8 +24,8 @@ const user = await getCurrentUser();
     { fullName, phone, address },
     { upsert: true, new: true }
   );
+ redirect("/checkout");
 
-  redirect("/payment"); // or any other route
 }
 
 export async function getShippingAddress(userId: string) {
@@ -33,7 +33,7 @@ export async function getShippingAddress(userId: string) {
   if (!userId) {
     throw new Error("User ID is required to fetch shipping address");
   }
-    const address = await ShippingAddress.findOne({
+    const address = await ShippingAddress.findOne<ShippingAddressType>({
     userId: userId,
   });
 
