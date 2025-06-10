@@ -23,3 +23,4 @@ export async function getCartProductsByIds(idArray: string[]) {
   console.log("Mapped products:", result);
   return result;
 }
+

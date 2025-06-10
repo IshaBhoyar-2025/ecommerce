@@ -5,6 +5,15 @@ import { connectDB } from "@/lib/mongodb";
 import ShippingAddress, { ShippingAddressType } from "@/models/ShippingAddress";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "../actions";
+import Cart from "@/models/Cart";
+
+
+
+
+interface CartItem {
+  productId: string;
+  quantity: number;
+}
 
 export async function saveShippingAddress(formData: FormData): Promise<void> {
 // Replace this with your actual user fetching logic, e.g. import { getCurrentUser } from "@/lib/auth";
@@ -46,3 +55,16 @@ export async function getShippingAddress(userId: string) {
     
 }
 
+export async function saveCartItems(items: CartItem[]) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("User not authenticated");
+
+  await connectDB();
+
+  // Upsert cart data
+  await Cart.findOneAndUpdate(
+    { userId: user._id },
+    { items },
+    { upsert: true, new: true }
+  );
+}

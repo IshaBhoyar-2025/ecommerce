@@ -5,8 +5,16 @@ import { getCurrentUser } from "../actions";
 import Header from "@/app/components/Header";
 import { redirect, useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
+import Script from "next/script";
 import { getCartProductsByIds } from '@/app/cart/actions';
 import { ProductType } from '@/app/types';
+
+// Declare Razorpay type for TypeScript
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 
 export  function CheckoutPage({  address,
@@ -119,10 +127,43 @@ export  function CheckoutPage({  address,
     setSavedForLater(updatedSaved);
     localStorage.setItem('savedForLater', JSON.stringify(updatedSaved));
   };
+// Example client-side handler for Place Order button
 
-const handlePlaceOrder = () => {
-  router.push('/payment');
-};
+function handlePlaceOrder() {
+  // Example order data (replace with real data from your backend)
+  const data = {
+    amount: cartProducts.reduce((sum, p) => sum + p.price * p.quantity, 0) * 100, // Razorpay expects amount in paise
+    currency: "INR",
+    id: "order_DBJOWzybf0sJbb", // Replace with real order id from backend
+  };
+
+  const options = {
+    key: 'YOUR_RAZORPAY_KEY', // Replace with your Razorpay key
+    amount: data.amount,
+    currency: data.currency,
+    order_id: data.id,
+    name: 'Your Shop Name',
+    description: 'Order Payment',
+    handler: function (response: { razorpay_payment_id: string; }) {
+      // Handle successful payment here
+      alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
+    },
+    modal: {
+      ondismiss: function () {
+        alert('Payment popup closed');
+      }
+    }
+  };
+
+  if (typeof window !== "undefined" && window.Razorpay) {
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  } else {
+    alert("Razorpay SDK not loaded.");
+  }
+}
+
+
 
  return (
   <>
