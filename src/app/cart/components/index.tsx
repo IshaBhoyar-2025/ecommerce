@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getCartProductsByIds } from '@/app/cart/actions';
 import { ProductType } from '@/app/types';
 import Header from "@/app/components/Header";
-import { getCurrentUser } from '@/app/actions'; // Adjust the import path as necessary
+import { getCurrentUser } from '@/app/actions'; 
 
 export function Cart() {
   const router = useRouter();

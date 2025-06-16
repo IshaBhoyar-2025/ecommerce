@@ -21,7 +21,7 @@ const cartSchema = new mongoose.Schema({
     unique: true,
   },
   items: [cartItemSchema],
-});
+}, { timestamps: true });
 
 const Cart = mongoose.models.Cart || mongoose.model("Cart", cartSchema);
 export default Cart;

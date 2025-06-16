@@ -1,59 +1,62 @@
-// src/app/shipping/actions.ts
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
 import ShippingAddress, { ShippingAddressType } from "@/models/ShippingAddress";
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "../actions";
 import Cart from "@/models/Cart";
-
-
-
 
 interface CartItem {
   productId: string;
   quantity: number;
 }
 
-export async function saveShippingAddress(formData: FormData): Promise<void> {
-// Replace this with your actual user fetching logic, e.g. import { getCurrentUser } from "@/lib/auth";
-const user = await getCurrentUser();
+type FormDataType = {
+  fullName: string;
+  phone: string;
+  address: string;
+};
 
+export async function saveShippingAddress({
+  fullName,
+  phone,
+  address,
+}: FormDataType ): Promise<ShippingAddressType> {
+  const user = await getCurrentUser();
   if (!user) throw new Error("Not authenticated");
 
-  const fullName = formData.get("fullName") as string;
-  const phone = formData.get("phone") as string;
-  const address = formData.get("address") as string;
+  if (!fullName || !phone || !address) {
+    throw new Error("All fields are required");
+  }
 
   await connectDB();
 
-  // Update if already exists, otherwise insert new
-  await ShippingAddress.findOneAndUpdate(
+  const shipping = await ShippingAddress.findOneAndUpdate(
     { userId: user._id },
-    { fullName, phone, address },
+    { fullName, phone, address, userId: user._id },
     { upsert: true, new: true }
   );
- redirect("/checkout");
 
+  return JSON.parse(JSON.stringify(shipping)); // Convert Mongoose document to plain object
 }
-
 export async function getShippingAddress(userId: string) {
   await connectDB();
   if (!userId) {
     throw new Error("User ID is required to fetch shipping address");
   }
-    const address = await ShippingAddress.findOne<ShippingAddressType>({
+
+  const address = await ShippingAddress.findOne<ShippingAddressType>({
     userId: userId,
-  });
+  }).lean(); // ✅ This returns a plain JS object instead of a Mongoose document
 
-    return {
-        fullName: address?.fullName?? "",
-        phone: address?.phone?? "",
-        address: address?.address?? "",
-    };
+  if (!address) return null;
 
-    
+  return {
+    fullName: address.fullName ?? "",
+    phone: address.phone ?? "",
+    address: address.address ?? "",
+  };
 }
+
 
 export async function saveCartItems(items: CartItem[]) {
   const user = await getCurrentUser();
@@ -61,10 +64,11 @@ export async function saveCartItems(items: CartItem[]) {
 
   await connectDB();
 
-  // Upsert cart data
-  await Cart.findOneAndUpdate(
+  const cart = await Cart.findOneAndUpdate(
     { userId: user._id },
-    { items },
+    { items, userId: user._id },
     { upsert: true, new: true }
   );
+
+  return JSON.parse(JSON.stringify(cart)); // Convert Mongoose document to plain object
 }

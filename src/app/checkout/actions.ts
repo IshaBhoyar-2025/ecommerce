@@ -2,29 +2,44 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
-import ShippingAddress, { ShippingAddressType } from "@/models/ShippingAddress";
+import Order from "@/models/Order";
 import { getCurrentUser } from "@/app/actions";
+import Cart from "@/models/Cart";
+import ShippingAddress from "@/models/ShippingAddress";
+import { ObjectId } from "mongodb";
 
-export async function getShippingAddress() {
+export async function createOrder(cartId: string, shippingAddressId: string) {
   await connectDB();
-
-
-
   const user = await getCurrentUser();
-    if (!user) {
-        throw new Error("User not authenticated");
-    }
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
 
-  const address = await ShippingAddress.findOne<ShippingAddressType>({ userId: user._id });
+  const cart = await Cart.findOne({ _id: new ObjectId(cartId), userId: user._id });
+  if (!cart || cart.items.length === 0) {
+    throw new Error("Cart is empty or not found");
+  }
 
-  return {
+  const shippingAddress = await ShippingAddress.findOne({
+    _id: new ObjectId(shippingAddressId),
+    userId: user._id,
+  });
 
-      fullName: address?.fullName ?? "",
-        phone: address?.phone ?? "",
-        address: address?.address ?? "",  
-}
+  if (!shippingAddress) {
+    throw new Error("Shipping address not found");
+  }
 
+  const newOrder = new Order({
+    cartId: cartId,
+    shippingAddressId: shippingAddressId,
+    userId: user._id,
+    status: "pending",
+    createdAt: new Date(),
+  });
 
+  await newOrder.save();
+
+  return { success: true, orderId: newOrder._id.toString() };
 }
 export { getCurrentUser };
 
