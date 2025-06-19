@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CategoryType, ProductType } from "../types";
-import { FaThumbsDown } from "react-icons/fa";
 import Header from "@/app/components/Header";
 
 type Props = {
@@ -15,6 +15,7 @@ export function Home({ products, categories }: Props) {
   const [cartCount, setCartCount] = useState(0);
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -24,7 +25,6 @@ export function Home({ products, categories }: Props) {
   const addToCart = (product: ProductType) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-    // Avoid duplicates
     const updatedCart = [
       ...cart.filter((item: string) => item !== product._id),
       product._id,
@@ -32,6 +32,10 @@ export function Home({ products, categories }: Props) {
 
     localStorage.setItem("cart", JSON.stringify(updatedCart));
     setCartCount(updatedCart.length);
+    console.log("Product added to cart:", product._id);
+
+    
+     router.push("/cart");
   };
 
   const buyNow = (product: ProductType) => {
@@ -40,14 +44,16 @@ export function Home({ products, categories }: Props) {
 
   return (
     <div className="min-h-screen font-sans bg-gray-100 text-gray-800">
-      {/* Sticky Navbar */}
-     <Header />
+      <Header />
 
       {/* Hero Section */}
       <section className="bg-blue-600 text-white text-center py-16 mt-20">
         <h2 className="text-4xl font-semibold">Welcome to E-Shop</h2>
         <p className="mt-4 text-lg">Find the best deals on electronics, fashion, and more!</p>
-        <a href="#products" className="mt-6 inline-block bg-yellow-500 text-black py-2 px-6 rounded-md text-lg hover:bg-yellow-600 transition">
+        <a
+          href="#products"
+          className="mt-6 inline-block bg-yellow-500 text-black py-2 px-6 rounded-md text-lg hover:bg-yellow-600 transition"
+        >
           Shop Now
         </a>
       </section>
@@ -81,7 +87,9 @@ export function Home({ products, categories }: Props) {
               onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
               className="w-full h-2 bg-blue-100 rounded-lg"
             />
-            <p className="text-sm text-gray-600 mt-2">₹{priceRange[0]} - ₹{priceRange[1]}</p>
+            <p className="text-sm text-gray-600 mt-2">
+              ₹{priceRange[0]} - ₹{priceRange[1]}
+            </p>
           </div>
         </aside>
 
@@ -115,12 +123,14 @@ export function Home({ products, categories }: Props) {
 
                   <div className="flex gap-2 mt-4">
                     <button
+                      type="button"
                       onClick={() => addToCart(product)}
                       className="bg-green-500 text-white py-2 px-4 rounded-md text-sm hover:bg-green-600"
                     >
                       Add to Cart
                     </button>
                     <button
+                      type="button"
                       onClick={() => buyNow(product)}
                       className="bg-yellow-500 text-white py-2 px-4 rounded-md text-sm hover:bg-yellow-600"
                     >

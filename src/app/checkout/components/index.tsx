@@ -1,17 +1,14 @@
 'use client';
 
-import { createOrder, getCurrentUser } from "../actions";
-import Header from "@/app/components/Header";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getCartProductsByIds } from '@/app/cart/actions';
+import { createOrder, updateOrderStatus } from '@/app/checkout/actions';
+import Header from '@/app/components/Header';
 import { ProductType } from '@/app/types';
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+import { handleOrderStatusUpdate } from "../UpdateOrderWrapper";
+
 
 interface CheckoutPageProps {
   address: {
@@ -21,105 +18,126 @@ interface CheckoutPageProps {
   };
 }
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 export function CheckoutPage({ address }: CheckoutPageProps) {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [cartProducts, setCartProducts] = useState<(ProductType & { quantity: number })[]>([]);
   const [savedForLater, setSavedForLater] = useState<ProductType[]>([]);
 
   useEffect(() => {
-    async function checkLogin() {
-      const user = await getCurrentUser();
-      setIsLoggedIn(!!user);
-    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
+  useEffect(() => {
     async function fetchCartProducts() {
-      const storedCart: string[] = JSON.parse(localStorage.getItem("cart") || "[]");
-      const storedSaved: ProductType[] = JSON.parse(localStorage.getItem("savedForLater") || "[]");
-
+      const storedCart: string[] = JSON.parse(localStorage.getItem('cart') || '[]');
+      const storedSaved: ProductType[] = JSON.parse(localStorage.getItem('savedForLater') || '[]');
       setSavedForLater(storedSaved);
 
-      if (storedCart.length === 0) {
-        setCartProducts([]);
-        return;
-      }
+      if (storedCart.length === 0) return setCartProducts([]);
 
       try {
         const products = await getCartProductsByIds(storedCart);
-
         const productMap: Record<string, number> = {};
-        storedCart.forEach(id => {
-          productMap[id] = (productMap[id] || 0) + 1;
-        });
-
-        const withQuantities = products.map((product: ProductType) => ({
-          ...product,
-          quantity: productMap[product._id] || 1,
-        }));
-
+        storedCart.forEach(id => (productMap[id] = (productMap[id] || 0) + 1));
+        const withQuantities = products.map(p => ({ ...p, quantity: productMap[p._id] || 1 }));
         setCartProducts(withQuantities);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        console.error('Error fetching cart products:', err);
         setCartProducts([]);
       }
     }
 
-    checkLogin();
     fetchCartProducts();
   }, []);
 
   const updateLocalStorageCart = (items: (ProductType & { quantity: number })[]) => {
     setCartProducts(items);
     const flat = items.flatMap(i => Array(i.quantity).fill(i._id));
-    localStorage.setItem("cart", JSON.stringify(flat));
+    localStorage.setItem('cart', JSON.stringify(flat));
   };
 
   const handleQuantityChange = (productId: string, type: 'increase' | 'decrease') => {
     const updated = cartProducts.map(p =>
       p._id === productId
-        ? { ...p, quantity: Math.max(1, p.quantity + (type === "increase" ? 1 : -1)) }
+        ? { ...p, quantity: Math.max(1, p.quantity + (type === 'increase' ? 1 : -1)) }
         : p
     );
     updateLocalStorageCart(updated);
   };
+const handlePlaceOrder = async () => {
+  const cartId = localStorage.getItem("cartId");
+  const shippingAddressId = localStorage.getItem("shippingAddressId");
 
-  const handleSaveForLater = (productId: string) => {
-    const product = cartProducts.find(p => p._id === productId);
-    if (!product) return;
-    updateLocalStorageCart(cartProducts.filter(p => p._id !== productId));
-    const updatedSaved = [...savedForLater, product];
-    setSavedForLater(updatedSaved);
-    localStorage.setItem("savedForLater", JSON.stringify(updatedSaved));
-  };
+  if (!cartId || !shippingAddressId) {
+    console.error("Missing cart or shippingAddress ID");
+    return;
+  }
 
-  const handleMoveToCart = (productId: string) => {
-    const product = savedForLater.find(p => p._id === productId);
-    if (!product) return;
-    const updatedSaved = savedForLater.filter(p => p._id !== productId);
-    setSavedForLater(updatedSaved);
-    localStorage.setItem("savedForLater", JSON.stringify(updatedSaved));
-    const updatedCart = [...cartProducts, { ...product, quantity: 1 }];
-    updateLocalStorageCart(updatedCart);
-  };
+  try {
+    // ✅ Call createOrder to get Razorpay order + db orderId
+    const { order, dbOrderId } = await createOrder(cartId, shippingAddressId);
 
-  const handleRemoveSaved = (productId: string) => {
-    const updatedSaved = savedForLater.filter(p => p._id !== productId);
-    setSavedForLater(updatedSaved);
-    localStorage.setItem("savedForLater", JSON.stringify(updatedSaved));
-  };
+    const options = {
+      key: 'rzp_test_gfa6K0r0FJpuRd',
+      amount: order.amount,
+      currency: "INR",
+      name: "E-Shop",
+      description: "Test Payment",
+      order_id: order.id,
+    handler: async function (response: any) {
+  try {
+    await updateOrderStatus({
+      orderId: dbOrderId,
+      paymentId: response.razorpay_payment_id,
+      status: "completed",
+    });
 
-  const handlePlaceOrder = async () => {
-    const cartId = localStorage.getItem("cartId");
-    const shippingAddressId = localStorage.getItem("shippingAddressId");
-    if (!cartId || !shippingAddressId) return alert("Missing cart or shipping address.");
-    try {
-      await createOrder(cartId, shippingAddressId);
-      alert("Order placed successfully!");
-      router.push("/order-success"); // or any order confirmation route
-    } catch (err) {
-      console.error("Order failed:", err);
-    }
-  };
+    // ✅ Clear cart and shipping data
+    localStorage.removeItem("cart");
+    localStorage.removeItem("cartId");
+    localStorage.removeItem("shippingAddressId");
+
+    // ✅ Redirect to success page (no alert)
+    router.push("/order-success");
+  } catch (error) {
+    console.error("Order status update failed:", error);
+    alert("Payment success, but order status update failed.");
+  }
+},
+
+      prefill: {
+        name: "Isha Bhoyar",
+        email: "bhoyarisha8@gmail.com",
+        contact: "7038441214",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+    rzp.on("payment.failed", function () {
+      alert("Oops! Something went wrong.\nPayment Failed");
+    });
+  } catch (error) {
+    console.error("Error placing order:", error);
+    alert("Order creation failed");
+  }
+};
+
+
+
 
   const totalAmount = cartProducts.reduce((sum, p) => sum + p.price * p.quantity, 0);
   const totalWithPlatformFee = totalAmount + 3;
@@ -143,54 +161,25 @@ export function CheckoutPage({ address }: CheckoutPageProps) {
             <p className="text-gray-500">Your cart is empty.</p>
           ) : (
             <>
-              <div className="space-y-6">
-                {cartProducts.map((product) => (
-                  <div key={product._id} className="flex flex-col md:flex-row gap-4 border-b pb-4">
-                    <img
-                      src={`/uploads/${product.productImages?.[0]?.thumb || ''}`}
-                      alt={product.productTitle}
-                      className="w-32 h-32 object-cover rounded"
-                    />
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold">{product.productTitle}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{product.productDescription}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <button onClick={() => handleQuantityChange(product._id, 'decrease')} className="px-2 py-1 bg-gray-200 rounded">−</button>
-                        <span className="text-lg font-medium">{product.quantity}</span>
-                        <button onClick={() => handleQuantityChange(product._id, 'increase')} className="px-2 py-1 bg-gray-200 rounded">+</button>
-                      </div>
-                      <div className="flex items-center gap-6 mt-3">
-                        <button onClick={() => handleSaveForLater(product._id)} className="text-blue-600">SAVE FOR LATER</button>
-                        <button onClick={() => updateLocalStorageCart(cartProducts.filter(p => p._id !== product._id))} className="text-blue-600">REMOVE</button>
-                      </div>
-                      <p className="mt-2 text-blue-600 font-bold text-md">₹{product.price * product.quantity}</p>
+              {cartProducts.map(product => (
+                <div key={product._id} className="flex gap-4 border-b pb-4">
+                  <img
+                    src={`/uploads/${product.productImages?.[0]?.thumb || ''}`}
+                    alt={product.productTitle}
+                    className="w-32 h-32 object-cover rounded"
+                  />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold">{product.productTitle}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{product.productDescription}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <button onClick={() => handleQuantityChange(product._id, 'decrease')} className="px-2 py-1 bg-gray-200 rounded">−</button>
+                      <span className="text-lg font-medium">{product.quantity}</span>
+                      <button onClick={() => handleQuantityChange(product._id, 'increase')} className="px-2 py-1 bg-gray-200 rounded">+</button>
                     </div>
+                    <p className="mt-2 text-blue-600 font-bold text-md">₹{product.price * product.quantity}</p>
                   </div>
-                ))}
-              </div>
-
-              {savedForLater.length > 0 && (
-                <div className="mt-12">
-                  <h2 className="text-xl font-bold mb-4">Saved For Later ({savedForLater.length})</h2>
-                  {savedForLater.map(product => (
-                    <div key={product._id} className="flex gap-4 border p-4 bg-white rounded">
-                      <img
-                        src={`/uploads/${product.productImages?.[0]?.thumb || ''}`}
-                        alt={product.productTitle}
-                        className="w-28 h-28 object-cover rounded"
-                      />
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold">{product.productTitle}</h3>
-                        <div className="flex items-center gap-4 mt-4">
-                          <button onClick={() => handleMoveToCart(product._id)} className="text-blue-600">MOVE TO CART</button>
-                          <button onClick={() => handleRemoveSaved(product._id)} className="text-blue-600">REMOVE</button>
-                        </div>
-                        <p className="mt-2 text-blue-600 font-bold text-md">₹{product.price}</p>
-                      </div>
-                    </div>
-                  ))}
                 </div>
-              )}
+              ))}
 
               <div className="text-right mt-8">
                 <button
@@ -204,7 +193,6 @@ export function CheckoutPage({ address }: CheckoutPageProps) {
           )}
         </div>
 
-        {/* Price Summary */}
         <div className="w-full border rounded-lg p-6 bg-white shadow-sm h-fit">
           <h3 className="text-lg font-bold mb-4 border-b pb-2">PRICE DETAILS</h3>
           <div className="space-y-2 text-sm">
