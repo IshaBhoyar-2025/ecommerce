@@ -1,4 +1,3 @@
-// models/ShippingAddress.ts
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface ShippingAddressType extends Document {
@@ -17,8 +16,5 @@ const ShippingAddressSchema = new Schema<ShippingAddressType>({
   createdAt: { type: Date, default: Date.now },
 });
 
-const ShippingAddress =
-  mongoose.models.ShippingAddress ||
+export default mongoose.models.ShippingAddress ||
   mongoose.model<ShippingAddressType>("ShippingAddress", ShippingAddressSchema);
-
-export default ShippingAddress;

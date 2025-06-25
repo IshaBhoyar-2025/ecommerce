@@ -21,3 +21,21 @@ export type CategoryType = {
   subcategories: { name: string; key: string }[]; // assuming this structure
 };
 
+// src/app/types.ts
+export type PopulatedOrder = {
+  _id: string;
+  status: string;
+  paymentId?: string;
+  amount: number;
+  createdAt: string | Date;
+  products: { title: string; quantity: number }[];
+  userId: {
+    name: string;
+    email: string;
+  };
+  shippingAddressId: {
+    fullName: string;
+    phone: string;
+    address: string;
+  };
+};
