@@ -1,37 +1,57 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Header from "@/app/components/Header";
+import { useRouter } from "next/navigation";
 import {
   getProductsByCategoryKey,
   getSubcategoriesByCategoryKey,
 } from "@/app/actions";
-import Link from "next/link";
-import Header from "@/app/components/Header";
 
-export default async function CategoryPage({
-  params,
-}: {
-  params: Promise<{ categoryKey: string }>;
-}) {
-  const { categoryKey } = await params;
+export default function CategoryPage({ params }: { params: { categoryKey: string } }) {
+  const router = useRouter();
+  const { categoryKey } = params;
 
-  const products = await getProductsByCategoryKey(categoryKey);
-  const subcategories = await getSubcategoriesByCategoryKey(categoryKey);
+  const [products, setProducts] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [fetchedProducts, fetchedSubcategories] = await Promise.all([
+        getProductsByCategoryKey(categoryKey),
+        getSubcategoriesByCategoryKey(categoryKey),
+      ]);
+      setProducts(fetchedProducts);
+      setSubcategories(fetchedSubcategories);
+    };
+    fetchData();
+  }, [categoryKey]);
+
+  const addToCart = (product: any) => {
+    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const updatedCart = [...existingCart, product._id];
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    router.push("/cart");
+  };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gradient-to-br from-gray-100 to-blue-50 min-h-screen">
       <Header />
 
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 px-4 py-8 pt-28">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 px-4 py-10 pt-28">
         {/* Sidebar */}
-        <aside className="w-full md:w-64 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg sm:text-xl font-semibold capitalize mb-4">
-            {categoryKey}
+        <aside className="w-full md:w-64 bg-white p-6 rounded-2xl shadow-md sticky top-28 self-start h-fit">
+          <h2 className="text-xl font-bold capitalize text-gray-900 mb-6 border-b pb-2">
+            {categoryKey.replace(/-/g, " ")}
           </h2>
 
-          <ul className="space-y-3 mb-6">
+          <ul className="space-y-3">
             {subcategories.map((sub) => (
               <li key={sub.subCategoryKey}>
                 <Link
                   href={`/subcategory/${sub.subCategoryKey}`}
-                  className="block text-gray-700 hover:text-blue-600 transition font-medium"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition font-medium"
                 >
                   {sub.subCategoryName}
                 </Link>
@@ -39,14 +59,16 @@ export default async function CategoryPage({
             ))}
           </ul>
 
-          <div>
+          {/* Price Filter */}
+          <div className="mt-8">
             <h4 className="text-md font-semibold text-gray-800 mb-2">
-              Price Range
+              Filter by Price
             </h4>
             <input
               type="range"
               min="0"
               max="10000"
+              step="500"
               defaultValue="10000"
               className="w-full accent-blue-500"
             />
@@ -54,42 +76,40 @@ export default async function CategoryPage({
           </div>
         </aside>
 
-        {/* Product Cards */}
-        <section className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product: any) => (
+        {/* Product Grid */}
+        <section className="flex-1 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((product) => (
             <div
               key={product._id}
-              className="bg-white rounded-lg shadow-md p-4 flex flex-col justify-between hover:shadow-lg transition"
+              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col"
             >
-              <Link href={`/items/${product._id}`}>
-                <div>
+              <Link href={`/items/${product._id}`} className="block">
+                <div className="w-full aspect-square bg-gray-100 overflow-hidden">
                   <img
                     src={`/uploads/${product.productImages?.[0]?.thumb || "no-image.jpg"}`}
                     alt={product.productTitle}
-                    className="w-full h-48 object-cover rounded-md mb-2"
+                    className="w-full h-full object-cover object-center"
                   />
-
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                </div>
+                <div className="p-4 space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-900 truncate">
                     {product.productTitle}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
-                    {product.productDescription.length > 30
-                      ? product.productDescription.slice(0, 30) + "..."
+                  <p className="text-sm text-gray-500">
+                    {product.productDescription.length > 40
+                      ? product.productDescription.slice(0, 40) + "..."
                       : product.productDescription}
                   </p>
-
-                  <p className="text-xl font-bold text-blue-600">
-                    ₹{product.price}
-                  </p>
+                  <p className="text-xl font-bold text-blue-600">₹{product.price}</p>
                 </div>
               </Link>
 
-              <div className="mt-4 flex gap-2">
-                <button className="w-1/2 bg-green-500 hover:bg-green-600 text-white text-sm py-2 rounded-md font-semibold">
-                  Add to Cart
-                </button>
-                <button className="w-1/2 bg-yellow-400 hover:bg-yellow-500 text-white text-sm py-2 rounded-md font-semibold">
-                  Buy Now
+              <div className="p-4 mt-auto border-t border-gray-100">
+                <button
+                  onClick={() => addToCart(product)}
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-2.5 rounded-full font-medium shadow-sm transition"
+                >
+                  🛒 Add to Cart
                 </button>
               </div>
             </div>

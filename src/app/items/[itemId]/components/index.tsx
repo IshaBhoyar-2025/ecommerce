@@ -13,48 +13,32 @@ export function Item({ productId, productImages }: Props) {
 
   const handleAddToCart = () => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-    // Avoid duplicates
-    const updatedCart = [
-      ...cart.filter((item: string) => item !== productId),
-      productId,
-    ];
-
+    const updatedCart = [...cart.filter((item: string) => item !== productId), productId];
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-
-    router.push("/cart"); // Redirect to cart page
-  };
-
-  const handleBuyNow = () => {
-    console.log("Buy Now:", { productId });
-    // Implement direct checkout logic here later
+    router.push("/cart");
   };
 
   return (
-    <div className="mt-6">
-      {productImages.map((image) => (
-        <Image
-          key={image.filename}
-          src={image.thumb}
-          alt={image.filename}
-          width={200}
-          height={200}
-          className="rounded-lg shadow-md mb-4"
-        />
-      ))}
+    <div className="bg-white rounded-2xl shadow-md p-6 mt-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
+        {productImages.map((image) => (
+          <Image
+            key={image.filename}
+            src={image.thumb}
+            alt={image.filename}
+            width={200}
+            height={200}
+            className="rounded-xl border shadow-sm"
+          />
+        ))}
+      </div>
 
-      <div className="flex gap-4">
+      <div className="mt-auto">
         <button
           onClick={handleAddToCart}
-          className="w-1/2 bg-green-500 hover:bg-green-600 text-white py-2 rounded-md font-semibold"
+          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-2.5 rounded-full font-medium shadow-sm transition"
         >
-          Add to Cart
-        </button>
-        <button
-          onClick={handleBuyNow}
-          className="w-1/2 bg-yellow-400 hover:bg-yellow-500 text-white py-2 rounded-md font-semibold"
-        >
-          Buy Now
+          🛒 Add to Cart
         </button>
       </div>
     </div>

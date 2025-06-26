@@ -90,7 +90,7 @@ const handlePlaceOrder = async () => {
       key: 'rzp_test_gfa6K0r0FJpuRd',
       amount: order.amount,
       currency: "INR",
-      name: "E-Shop",
+      name: "Shoporia",
       description: "Test Payment",
       order_id: order.id,
     handler: async function (response: any) {

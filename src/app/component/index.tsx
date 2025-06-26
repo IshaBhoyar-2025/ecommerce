@@ -6,15 +6,14 @@ import { useRouter } from "next/navigation";
 import { CategoryType, ProductType } from "../types";
 import Header from "@/app/components/Header";
 
-type Props = {
+interface Props {
   products: ProductType[];
   categories: CategoryType[];
-};
+}
 
 export function Home({ products, categories }: Props) {
   const [cartCount, setCartCount] = useState(0);
   const [priceRange, setPriceRange] = useState([0, 10000]);
-  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -24,50 +23,67 @@ export function Home({ products, categories }: Props) {
 
   const addToCart = (product: ProductType) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-    const updatedCart = [
-      ...cart.filter((item: string) => item !== product._id),
-      product._id,
-    ];
-
+    const updatedCart = [...cart.filter((item: string) => item !== product._id), product._id];
     localStorage.setItem("cart", JSON.stringify(updatedCart));
     setCartCount(updatedCart.length);
-    console.log("Product added to cart:", product._id);
-
-    
-     router.push("/cart");
+    router.push("/cart");
   };
 
-  const buyNow = (product: ProductType) => {
-    alert(`You are buying: ${product.productTitle}`);
-  };
+  const filteredProducts = products.filter(
+    (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
+  );
 
   return (
-    <div className="min-h-screen font-sans bg-gray-100 text-gray-800">
+    <div className="min-h-screen font-sans bg-gradient-to-br from-slate-50 to-slate-200 text-gray-800">
       <Header />
 
-      {/* Hero Section */}
-      <section className="bg-blue-600 text-white text-center py-16 mt-20">
-        <h2 className="text-4xl font-semibold">Welcome to E-Shop</h2>
-        <p className="mt-4 text-lg">Find the best deals on electronics, fashion, and more!</p>
-        <a
-          href="#products"
-          className="mt-6 inline-block bg-yellow-500 text-black py-2 px-6 rounded-md text-lg hover:bg-yellow-600 transition"
-        >
-          Shop Now
-        </a>
+      <section className="bg-white mt-20 py-20 px-6 md:px-12 shadow-sm rounded-b-3xl">
+        <div className="max-w-7xl mx-auto flex flex-col-reverse md:flex-row items-center justify-between gap-12">
+          <div className="text-center md:text-left flex-1">
+            <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-4">
+              Your Daily <span className="text-indigo-600">Shopping</span> Hub
+            </h1>
+            <p className="text-lg text-gray-600 mb-6">
+              Discover top deals on fashion, electronics, and essentials — all in one place.
+            </p>
+            <a
+              href="#products"
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white py-3 px-6 rounded-full text-lg font-semibold hover:bg-indigo-700 transition"
+            >
+              🛍 Start Shopping
+            </a>
+          </div>
+
+          {/* ✅ Hero Category Cards */}
+          <div className="flex-1 grid grid-cols-2 gap-6 w-full max-w-md">
+            {[
+              { name: "⚡ Electronics", key: "electronics" },
+              { name: "👗 Fashion", key: "fashion" },
+              { name: "💍 Accessories", key: "accessories" }, // ✅ changed here
+              { name: "📚 Books", key: "books" },
+            ].map((cat, index) => (
+              <Link
+                key={index}
+                href={`/categories/${cat.key}`}
+                className="bg-gradient-to-tr from-white via-blue-50 to-white p-6 rounded-3xl border border-gray-100 shadow hover:shadow-md hover:-translate-y-1 transition block"
+              >
+                <p className="text-xl font-semibold text-gray-800">{cat.name}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Layout */}
-      <div className="flex px-6 py-8 gap-8 mt-8">
+      <div className="flex px-6 py-12 gap-10 max-w-7xl mx-auto">
         {/* Sidebar */}
-        <aside className="w-64 bg-white p-6 rounded-lg shadow-md">
-          <ul className="space-y-4">
+        <aside className="w-64 bg-white p-6 rounded-2xl shadow-md sticky top-24 h-fit">
+          <h3 className="text-xl font-bold mb-4">Categories</h3>
+          <ul className="space-y-3">
             {categories.map((cat) => (
               <li key={cat._id}>
                 <Link
-                  href={`categories/${cat.categoryKey}`}
-                  className="w-full text-left text-lg py-2 px-4 rounded-md hover:bg-blue-100"
+                  href={`/categories/${cat.categoryKey}`}
+                  className="block text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg transition"
                 >
                   {cat.categoryName}
                 </Link>
@@ -75,9 +91,9 @@ export function Home({ products, categories }: Props) {
             ))}
           </ul>
 
-          {/* Price Filter */}
-          <div className="mt-6">
-            <h3 className="font-semibold mb-2">Price Range</h3>
+          {/* Price Range Filter */}
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-2">Filter by Price</h3>
             <input
               type="range"
               min="0"
@@ -85,7 +101,7 @@ export function Home({ products, categories }: Props) {
               step="500"
               value={priceRange[1]}
               onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-              className="w-full h-2 bg-blue-100 rounded-lg"
+              className="w-full accent-indigo-500"
             />
             <p className="text-sm text-gray-600 mt-2">
               ₹{priceRange[0]} - ₹{priceRange[1]}
@@ -93,50 +109,42 @@ export function Home({ products, categories }: Props) {
           </div>
         </aside>
 
-        {/* Product Grid */}
-        <main className="flex-1 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="products">
-          {products.length === 0 ? (
+        {/* Products Grid */}
+        <main id="products" className="flex-1 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredProducts.length === 0 ? (
             <p className="text-center col-span-full text-gray-500">No products found.</p>
           ) : (
-            products.map((product) => (
+            filteredProducts.map((product) => (
               <div
                 key={product._id}
-                className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition transform hover:scale-105"
+                className="bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl transition transform hover:-translate-y-1 flex flex-col"
               >
-                <div className="p-4">
-                  <Link href={`/items/${product._id}`}>
-                    <h3 className="text-lg font-semibold text-gray-800">{product.productTitle}</h3>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {product.productDescription.length > 30
-                        ? product.productDescription.slice(0, 30) + "..."
-                        : product.productDescription}
-                    </p>
-                    {product.productImages?.[0]?.thumb && (
-                      <img
-                        src={`/uploads/${product.productImages?.[0]?.thumb}`}
-                        alt={product.productTitle}
-                        className="w-full h-48 object-cover rounded-md mb-4"
-                      />
-                    )}
-                  </Link>
-                  <p className="text-xl font-bold text-blue-600">₹{product.price}</p>
-
-                  <div className="flex gap-2 mt-4">
-                    <button
-                      type="button"
-                      onClick={() => addToCart(product)}
-                      className="bg-green-500 text-white py-2 px-4 rounded-md text-sm hover:bg-green-600"
-                    >
-                      Add to Cart
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => buyNow(product)}
-                      className="bg-yellow-500 text-white py-2 px-4 rounded-md text-sm hover:bg-yellow-600"
-                    >
-                      Buy Now
-                    </button>
+                <Link href={`/items/${product._id}`} className="block">
+                  <div className="w-full aspect-square bg-gray-100 overflow-hidden">
+                    <img
+                      src={`/uploads/${product.productImages?.[0]?.thumb || "no-image.jpg"}`}
+                      alt={product.productTitle}
+                      className="w-full h-full object-cover object-center"
+                    />
                   </div>
+                  <div className="p-4 space-y-1">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      {product.productTitle}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {product.productDescription.slice(0, 50)}...
+                    </p>
+                    <p className="text-indigo-600 text-xl font-bold">₹{product.price}</p>
+                  </div>
+                </Link>
+
+                <div className="p-4 mt-auto border-t border-gray-100">
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-2.5 rounded-full font-medium shadow-sm transition"
+                  >
+                    🛒 Add to Cart
+                  </button>
                 </div>
               </div>
             ))
