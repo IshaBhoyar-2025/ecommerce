@@ -15,6 +15,7 @@ export default function CategoryPage({ params }: { params: { categoryKey: string
 
   const [products, setProducts] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [maxPrice, setMaxPrice] = useState(10000);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,6 +35,8 @@ export default function CategoryPage({ params }: { params: { categoryKey: string
     localStorage.setItem("cart", JSON.stringify(updatedCart));
     router.push("/cart");
   };
+
+  const filteredProducts = products.filter((product) => product.price <= maxPrice);
 
   return (
     <div className="bg-gradient-to-br from-gray-100 to-blue-50 min-h-screen">
@@ -59,26 +62,29 @@ export default function CategoryPage({ params }: { params: { categoryKey: string
             ))}
           </ul>
 
+          
+
           {/* Price Filter */}
           <div className="mt-8">
-            <h4 className="text-md font-semibold text-gray-800 mb-2">
-              Filter by Price
-            </h4>
+            <h3 className="text-lg font-semibold mb-2">Filter by Price</h3>
             <input
               type="range"
               min="0"
               max="10000"
               step="500"
-              defaultValue="10000"
-              className="w-full accent-blue-500"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(parseInt(e.target.value))}
+              className="w-full accent-indigo-500"
             />
-            <p className="text-sm text-gray-600 mt-1">₹0 - ₹10000</p>
+            <p className="text-sm text-gray-600 mt-2">
+              ₹0 - ₹{maxPrice}
+            </p>
           </div>
         </aside>
 
         {/* Product Grid */}
         <section className="flex-1 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div
               key={product._id}
               className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col"

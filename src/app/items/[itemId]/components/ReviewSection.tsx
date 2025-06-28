@@ -13,7 +13,6 @@ interface Props {
   productId: string;
 }
 
-export default function ReviewSection({ productId }: Props) {
 interface Review {
   _id: string;
   userName: string;
@@ -22,6 +21,7 @@ interface Review {
   rating: number;
 }
 
+export default function ReviewSection({ productId }: Props) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -30,12 +30,12 @@ interface Review {
   const [rating, setRating] = useState(5);
 
   useEffect(() => {
-    async function checkUser() {
+    async function fetchUser() {
       const user = await getCurrentUser();
       setCurrentUser(user?._id || null);
       setIsLoggedIn(!!user);
     }
-    checkUser();
+    fetchUser();
   }, []);
 
   useEffect(() => {
@@ -83,7 +83,7 @@ interface Review {
   };
 
   return (
-    <div className="mt-8 border-t pt-6">
+    <div className="mt-10 border-t pt-6">
       <h2 className="text-xl font-bold mb-4">Customer Reviews</h2>
 
       {reviews.length === 0 ? (
@@ -135,7 +135,7 @@ interface Review {
           You’ve already submitted a review.
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -143,29 +143,26 @@ interface Review {
             className="w-full border rounded-lg p-3 resize-none"
             required
           />
-          <div className="space-y-2">
 
- <div className="space-y-2">
-  <p className="font-semibold text-gray-700">Rate this product:</p>
-  <div className="flex space-x-4">
-    {[1, 2, 3, 4, 5].map((num) => (
-      <label key={num} className="flex items-center space-x-1">
-        <input
-          type="radio"
-          name="rating"
-          value={num}
-          checked={rating === num}
-          onChange={() => setRating(num)}
-          className="accent-blue-500"
-          required
-        />
-        <span className="text-sm text-gray-600">{num}</span>
-      </label>
-    ))}
-  </div>
-</div>
-
-</div>
+          <div>
+            <p className="font-semibold text-gray-700 mb-2">Rate this product:</p>
+            <div className="flex space-x-4">
+              {[1, 2, 3, 4, 5].map((num) => (
+                <label key={num} className="flex items-center space-x-1">
+                  <input
+                    type="radio"
+                    name="rating"
+                    value={num}
+                    checked={rating === num}
+                    onChange={() => setRating(num)}
+                    className="accent-yellow-500"
+                    required
+                  />
+                  <span className="text-sm text-gray-600">{num}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
           <button
             type="submit"

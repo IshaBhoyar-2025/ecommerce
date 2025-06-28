@@ -28,12 +28,12 @@ export async function registerUser(formData: FormData) {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-
   const newUser = new User({ name, email, password: hashedPassword });
   await newUser.save();
 
   return { success: "User registered successfully. Please login." };
 }
+
 
 // Login User
 export async function loginUser(formData: FormData) {
@@ -161,6 +161,19 @@ export async function getAllCategories(): Promise<CategoryType[]> {
     return [];
   }
 }
+
+// Get a subcategory by its key
+export async function getSubCategoryByKey(subCategoryKey: string) {
+  await connectDB();
+  return await SubCategory.findOne({ subCategoryKey });
+}
+
+// Get a category by its key
+export async function getCategoryByKey(categoryKey: string) {
+  await connectDB();
+  return await Category.findOne({ categoryKey });
+}
+
 
 // Get Subcategories By Category Key
 export const getSubCategoriesByCategoryKey = async (categoryKey: string) => {
