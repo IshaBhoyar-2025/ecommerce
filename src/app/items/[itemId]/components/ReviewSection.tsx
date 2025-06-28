@@ -144,6 +144,8 @@ interface Review {
             required
           />
           <div className="space-y-2">
+
+ <div className="space-y-2">
   <p className="font-semibold text-gray-700">Rate this product:</p>
   <div className="flex space-x-4">
     {[1, 2, 3, 4, 5].map((num) => (
@@ -152,6 +154,8 @@ interface Review {
           type="radio"
           name="rating"
           value={num}
+          checked={rating === num}
+          onChange={() => setRating(num)}
           className="accent-blue-500"
           required
         />
@@ -159,6 +163,8 @@ interface Review {
       </label>
     ))}
   </div>
+</div>
+
 </div>
 
           <button
