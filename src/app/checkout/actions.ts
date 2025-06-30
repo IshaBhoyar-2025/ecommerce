@@ -8,10 +8,29 @@ import ShippingAddress from "@/models/ShippingAddress";
 import { getCurrentUser } from "@/app/actions";
 import mongoose from "mongoose";
 
+// Setup Razorpay instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
+
+// Product type to be saved in the order
+type Product = {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+};
+
+// Type for a single cart item after population
+interface PopulatedCartItem {
+  productId: {
+    _id: mongoose.Types.ObjectId;
+    productTitle: string;
+    price: number;
+  };
+  quantity: number;
+}
 
 export async function createOrder(cartId: string, shippingAddressId: string) {
   await connectDB();
@@ -19,7 +38,6 @@ export async function createOrder(cartId: string, shippingAddressId: string) {
   const user = await getCurrentUser();
   if (!user) throw new Error("User not logged in");
 
-  // ✅ Validate IDs to avoid BSONError
   if (!mongoose.Types.ObjectId.isValid(cartId)) {
     throw new Error("Invalid cartId format");
   }
@@ -33,19 +51,12 @@ export async function createOrder(cartId: string, shippingAddressId: string) {
   const shippingAddress = await ShippingAddress.findById(shippingAddressId);
   if (!shippingAddress) throw new Error("Shipping address not found");
 
-  type Product = {
-    productId: string;
-    name: string;
-    price: number;
-    quantity: number;
-  };
-
- const products: Product[] = cart.items.map((item: any) => ({
-  productId: item.productId._id.toString(),
-  name: item.productId.productTitle,
-  price: item.productId.price,
-  quantity: item.quantity,
-}));
+  const products: Product[] = (cart.items as PopulatedCartItem[]).map((item) => ({
+    productId: item.productId._id.toString(),
+    name: item.productId.productTitle,
+    price: item.productId.price,
+    quantity: item.quantity,
+  }));
 
   const productTotal = products.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const platformFee = 3;
@@ -53,22 +64,20 @@ export async function createOrder(cartId: string, shippingAddressId: string) {
 
   // Create Razorpay order
   const razorpayOrder = await razorpay.orders.create({
-    amount: totalAmount * 100, // Razorpay works in paise
+    amount: totalAmount * 100,
     currency: "INR",
     receipt: `receipt_order_${Date.now()}`,
   });
 
-  // Save order to MongoDB
-
-// ✅ Save products to the order
-const newOrder = await Order.create({
-  cartId,
-  shippingAddressId,
-  userId: user._id,
-  products, // <-- this must not be empty
-  amount: totalAmount,
-  status: "pending",
-});
+  // Save order in DB
+  const newOrder = await Order.create({
+    cartId,
+    shippingAddressId,
+    userId: user._id,
+    products,
+    amount: totalAmount,
+    status: "pending",
+  });
 
   return {
     order: razorpayOrder,
@@ -104,11 +113,10 @@ export async function updateOrderStatus({
     throw new Error("Order not found or update failed");
   }
 
-  // ✅ Delete the cart after successful payment
+  // Delete cart if payment is successful
   if (status === "completed" && updatedOrder.cartId) {
     await Cart.findByIdAndDelete(updatedOrder.cartId);
   }
 
   return { success: true };
 }
-

@@ -1,22 +1,17 @@
 import { getAllSubCategories } from "./actions";
 import Link from "next/link";
-import { DeleteSubCategoryButton } from "./components/DeleteSubcategoriesButton"; // Ensure import is correct
-
+import { DeleteSubCategoryButton } from "./components/DeleteSubcategoriesButton";
 
 export type SubCategoryType = {
   _id: string;
   subCategoryName: string;
   subCategoryKey: string;
   parentCategoryKey: string;
-  parentCategoryName?: string; // <-- add this
+  parentCategoryName?: string;
 };
-
-
 
 export default async function SubCategoryPage() {
   const subcategories: SubCategoryType[] = await getAllSubCategories();
-
-  
 
   return (
     <div className="p-8">
@@ -43,25 +38,20 @@ export default async function SubCategoryPage() {
           <table className="min-w-full bg-white border">
             <thead>
               <tr className="bg-gray-100">
-
                 <th className="px-4 py-2 border">Sub Category Name</th>
                 <th className="px-4 py-2 border">Sub Category Key</th>
                 <th className="px-4 py-2 border">Parent Category Key</th>
-                <th className="px-4 py-2 border"> Parent Category Name </th>
+                <th className="px-4 py-2 border">Parent Category Name</th>
                 <th className="px-4 py-2 border">Actions</th>
-
               </tr>
             </thead>
             <tbody>
-              {subcategories.map((subcategory, index) => (
+              {subcategories.map((subcategory) => (
                 <tr key={subcategory._id} className="text-center">
                   <td className="px-4 py-2 border">{subcategory.subCategoryName}</td>
                   <td className="px-4 py-2 border">{subcategory.subCategoryKey}</td>
                   <td className="px-4 py-2 border">{subcategory.parentCategoryKey}</td>
-                  <td className="px-4 py-2 border">
-                    {subcategory.parentCategoryName }                                 
-                  </td>
-
+                  <td className="px-4 py-2 border">{subcategory.parentCategoryName || "N/A"}</td>
                   <td className="px-4 py-2 border space-x-2">
                     <Link
                       href={`/admin/subcategory/edit/${subcategory._id}`}
@@ -69,7 +59,6 @@ export default async function SubCategoryPage() {
                     >
                       Edit
                     </Link>
-
                     <DeleteSubCategoryButton subcategoryId={subcategory._id.toString()} />
                   </td>
                 </tr>

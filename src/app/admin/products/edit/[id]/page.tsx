@@ -11,6 +11,11 @@ type EditProductPageProps = {
   }>;
 };
 
+type ProductImage = {
+  filename: string;
+  thumb: string;
+};
+
 export default async function EditProductPage({ params }: EditProductPageProps) {
   const admin = await getCurrentAdmin();
   if (!admin) {
@@ -27,16 +32,17 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     return <div className="text-center mt-10 text-red-600">Subcategory not found.</div>;
   }
 
-
-  const product = rawProduct; // Convert Mongoose doc to plain object
+  const product = rawProduct;
   const allCategories = await getAllCategories();
   const allSubcategories = await getAllSubCategories();
-  
-  console.log("Product:", product);
-  const productImages = product.productImages.map((img: any) => ({
-    filename: img.filename,
-    thumb: img.thumb,
-  }));
+
+  const productImages: ProductImage[] = product.productImages.map((img: unknown) => {
+    const image = img as ProductImage;
+    return {
+      filename: image.filename,
+      thumb: image.thumb,
+    };
+  });
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">

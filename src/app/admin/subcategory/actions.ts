@@ -1,10 +1,11 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
-import SubCategory from "@/models/SubCategory"; // Make sure the filename is SubCategory.ts
+import SubCategory from "@/models/SubCategory";
 import { revalidatePath } from "next/cache";
 import { ObjectId } from "mongodb";
 
+// Base subcategory type
 export type SubCategoryType = {
   _id: string;
   subCategoryName: string;
@@ -12,12 +13,25 @@ export type SubCategoryType = {
   parentCategoryKey: string;
 };
 
-// Add new subcategory
+// Extended type to include parent category name
+export type SubCategoryWithParent = SubCategoryType & {
+  parentCategoryName?: string;
+};
+
+// MongoDB aggregation result type
+interface SubCategoryAggregationResult {
+  _id: ObjectId;
+  subCategoryName: string;
+  subCategoryKey: string;
+  parentCategoryKey: string;
+  parentCategoryName?: string;
+}
+
 export async function addSubCategory(formData: FormData) {
   await connectDB();
 
   const subCategoryName = formData.get("subCategoryName")?.toString();
-  const subCategoryKey = formData.get("subCategoryKey")?.toString(); // Fixed typo
+  const subCategoryKey = formData.get("subCategoryKey")?.toString();
   const parentCategoryKey = formData.get("parentCategoryKey")?.toString();
 
   if (!subCategoryName || !subCategoryKey || !parentCategoryKey) {
@@ -34,20 +48,20 @@ export async function addSubCategory(formData: FormData) {
     await newSubCategory.save();
     revalidatePath("/admin/subcategory");
     return { success: "Subcategory added successfully." };
-  } catch (error: any) {
-    console.error("Error adding subcategory:", error.message || error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Error adding subcategory:", err.message || error);
     return { error: "Failed to add subcategory." };
   }
 }
 
-// Get all subcategories
-export async function getAllSubCategories(): Promise<(SubCategoryType & { parentCategoryName?: string })[]> {
+export async function getAllSubCategories(): Promise<SubCategoryWithParent[]> {
   await connectDB();
 
-  const subcategories = await SubCategory.aggregate([
+  const subcategories = await SubCategory.aggregate<SubCategoryAggregationResult>([
     {
       $lookup: {
-        from: "categories", // This should be the actual MongoDB collection name
+        from: "categories",
         localField: "parentCategoryKey",
         foreignField: "categoryKey",
         as: "parentCategory",
@@ -56,7 +70,7 @@ export async function getAllSubCategories(): Promise<(SubCategoryType & { parent
     {
       $unwind: {
         path: "$parentCategory",
-        preserveNullAndEmptyArrays: true, // In case no match is found
+        preserveNullAndEmptyArrays: true,
       },
     },
     {
@@ -69,16 +83,15 @@ export async function getAllSubCategories(): Promise<(SubCategoryType & { parent
     },
   ]);
 
-  return subcategories.map((item: any) => ({
+  return subcategories.map((item) => ({
     _id: item._id.toString(),
     subCategoryName: item.subCategoryName,
     subCategoryKey: item.subCategoryKey,
     parentCategoryKey: item.parentCategoryKey,
-    parentCategoryName: item.parentCategoryName,
+    parentCategoryName: item.parentCategoryName || undefined,
   }));
 }
 
-// Get subcategory by ID
 export async function getSubCategoryById(id: string): Promise<SubCategoryType | null> {
   await connectDB();
 
@@ -93,7 +106,6 @@ export async function getSubCategoryById(id: string): Promise<SubCategoryType | 
   };
 }
 
-// Update subcategory
 export async function updateSubCategory(formData: FormData) {
   await connectDB();
 
@@ -115,21 +127,22 @@ export async function updateSubCategory(formData: FormData) {
 
     revalidatePath("/admin/subcategory");
     return { success: "Subcategory updated successfully." };
-  } catch (error) {
-    console.error("Error updating subcategory:", error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Error updating subcategory:", err.message || error);
     return { error: "Failed to update subcategory." };
   }
 }
 
-// Delete subcategory
 export async function deleteSubCategoryById(id: string) {
   await connectDB();
 
   try {
     await SubCategory.findByIdAndDelete(new ObjectId(id));
     revalidatePath("/admin/subcategory");
-  } catch (error) {
-    console.error("Error deleting subcategory:", error);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error("Error deleting subcategory:", err.message || error);
     throw new Error("Failed to delete subcategory.");
   }
 }

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CategoryType, ProductType } from "../types";
+import { ProductType } from "../types";
 import Header from "@/app/components/Header";
+import Image from "next/image";
+import { CategoryType } from "../admin/categories/actions";
 
 interface Props {
   products: ProductType[];
@@ -12,20 +14,14 @@ interface Props {
 }
 
 export function Home({ products, categories }: Props) {
-  const [cartCount, setCartCount] = useState(0);
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const router = useRouter();
 
-  useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCartCount(storedCart.length);
-  }, []);
-
   const addToCart = (product: ProductType) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    // Add product ID to cart; here you might want to allow duplicates or increase quantity, but this keeps unique IDs
     const updatedCart = [...cart.filter((item: string) => item !== product._id), product._id];
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-    setCartCount(updatedCart.length);
     router.push("/cart");
   };
 
@@ -54,12 +50,11 @@ export function Home({ products, categories }: Props) {
             </a>
           </div>
 
-          {/* ✅ Hero Category Cards */}
           <div className="flex-1 grid grid-cols-2 gap-6 w-full max-w-md">
             {[
               { name: "⚡ Electronics", key: "electronics" },
               { name: "👗 Fashion", key: "fashion" },
-              { name: "💍 Accessories", key: "accessories" }, // ✅ changed here
+              { name: "💍 Accessories", key: "accessories" },
               { name: "📚 Books", key: "books" },
             ].map((cat, index) => (
               <Link
@@ -120,11 +115,12 @@ export function Home({ products, categories }: Props) {
                 className="bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl transition transform hover:-translate-y-1 flex flex-col"
               >
                 <Link href={`/items/${product._id}`} className="block">
-                  <div className="w-full aspect-square bg-gray-100 overflow-hidden">
-                    <img
+                  <div className="w-full aspect-square bg-gray-100 overflow-hidden relative">
+                    <Image
                       src={`/uploads/${product.productImages?.[0]?.thumb || "no-image.jpg"}`}
                       alt={product.productTitle}
-                      className="w-full h-full object-cover object-center"
+                      fill
+                      className="object-cover object-center"
                     />
                   </div>
                   <div className="p-4 space-y-1">

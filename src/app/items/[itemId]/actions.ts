@@ -5,8 +5,35 @@ import Product from "@/models/Product";
 import Review from "@/models/Review";
 import mongoose from "mongoose";
 
+// Interfaces
+interface ProductImage {
+  filename: string;
+  thumb: string;
+}
+
+interface ProductResult {
+  _id: string;
+  productTitle: string;
+  productDescription: string;
+  price: number;
+  subCategoryKey: string;
+  subCategoryName?: string;
+  categoryKey?: string;
+  categoryName?: string;
+  productImages: ProductImage[];
+}
+
+interface ReviewResult {
+  _id: string;
+  productId: string;
+  userId: string;
+  text: string;
+  rating: number;
+  userName: string;
+}
+
 // ✅ Get product details by ID
-export async function getProductById(productId: string) {
+export async function getProductById(productId: string): Promise<ProductResult | null> {
   await connectDB();
 
   if (!mongoose.Types.ObjectId.isValid(productId)) return null;
@@ -62,7 +89,7 @@ export async function getProductById(productId: string) {
     subCategoryName: product.subCategoryName,
     categoryKey: product.categoryKey,
     categoryName: product.categoryName,
-    productImages: product.productImages.map((img: any) => ({
+    productImages: product.productImages.map((img: ProductImage) => ({
       filename: img.filename,
       thumb: `/uploads/${img.thumb}`,
     })),
@@ -70,7 +97,7 @@ export async function getProductById(productId: string) {
 }
 
 // ✅ Get all reviews for a product with username
-export async function getReviews(productId: string) {
+export async function getReviews(productId: string): Promise<ReviewResult[]> {
   await connectDB();
 
   if (!mongoose.Types.ObjectId.isValid(productId)) return [];
@@ -118,7 +145,7 @@ export async function submitReview({
   userId: string;
   text: string;
   rating: number;
-}) {
+}): Promise<Omit<ReviewResult, "userName">> {
   await connectDB();
 
   const existing = await Review.findOne({ productId, userId });
@@ -139,9 +166,8 @@ export async function submitReview({
 }
 
 // ✅ Delete a review
-export async function deleteReview(reviewId: string) {
+export async function deleteReview(reviewId: string): Promise<void> {
   await connectDB();
   if (!mongoose.Types.ObjectId.isValid(reviewId)) return;
   await Review.findByIdAndDelete(reviewId);
-
 }

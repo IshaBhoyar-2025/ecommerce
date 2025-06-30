@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { updateProduct } from "@/app/admin/products/actions";
 import { useRouter } from "next/navigation";
 import { AiFillCloseCircle } from "react-icons/ai";
+import Image from "next/image";
 
 type Category = {
   categoryName: string;
@@ -88,7 +89,6 @@ export function EditProductForm({
     router.push("/admin/products");
   };
 
-
   const handleDelete = (indexToDelete: number) => {
     setImages(images.filter((_, idx) => idx !== indexToDelete));
   };
@@ -164,8 +164,7 @@ export function EditProductForm({
         <label className="block mb-1 font-medium text-gray-700">Current Images</label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {images.map((image, index) => (
-            <div key={index} className="relative">
-              {/* Delete Icon positioned absolutely above the image */}
+            <div key={index} className="relative aspect-square w-full">
               <button
                 onClick={() => handleDelete(index)}
                 className="absolute top-1 right-1 z-10 bg-white rounded-full p-1 shadow-md hover:bg-red-100"
@@ -175,10 +174,11 @@ export function EditProductForm({
                 <AiFillCloseCircle className="text-red-600 w-6 h-6" />
               </button>
 
-              <img
+              <Image
                 src={`/uploads/${image.thumb}`}
                 alt={`Product ${index + 1}`}
-                className="w-full h-auto rounded-md border"
+                fill
+                className="rounded-md border object-cover"
               />
             </div>
           ))}

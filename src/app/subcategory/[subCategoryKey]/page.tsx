@@ -7,6 +7,15 @@ import {
 
 import Header from "@/app/components/Header";
 import Link from "next/link";
+import Image from "next/image";
+
+interface Product {
+  _id: string;
+  productTitle: string;
+  productDescription: string;
+  price: number;
+  productImages?: { thumb: string }[];
+}
 
 export default async function SubcategoryPage({
   params,
@@ -15,23 +24,16 @@ export default async function SubcategoryPage({
 }) {
   const { subCategoryKey } = await params;
 
-  // Get products
-  const products = await getProductsBySubCategoryKey(subCategoryKey);
-
-  // Get current subcategory (contains parentCategoryKey)
+  const products: Product[] = await getProductsBySubCategoryKey(subCategoryKey);
   const currentSubcategory = await getSubCategoryByKey(subCategoryKey);
-
-  // Get parent category
   const parentCategory = currentSubcategory
     ? await getCategoryByKey(currentSubcategory.parentCategoryKey)
     : null;
 
-  // Get all subcategories under this category
   const subcategories = currentSubcategory?.parentCategoryKey
     ? await getSubcategoriesByCategoryKey(currentSubcategory.parentCategoryKey)
     : [];
-     
-    
+
   return (
     <div className="bg-gradient-to-br from-gray-100 to-blue-50 min-h-screen">
       <Header />
@@ -39,12 +41,10 @@ export default async function SubcategoryPage({
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 px-4 py-10 pt-28">
         {/* Sidebar */}
         <aside className="w-full md:w-64 bg-white p-6 rounded-2xl shadow-md sticky top-28 self-start h-fit">
-          {/* Parent Category Title */}
           <h3 className="text-xl font-bold text-gray-900 border-b pb-2 mb-4">
             {parentCategory?.categoryName || "Category"}
           </h3>
 
-          {/* Subcategories List */}
           <ul className="space-y-2">
             {subcategories.map((sub) => (
               <li key={sub.subCategoryKey}>
@@ -62,7 +62,6 @@ export default async function SubcategoryPage({
             ))}
           </ul>
 
-          {/* Current Subcategory Name */}
           {currentSubcategory?.subCategoryName && (
             <div className="mt-6 border-t pt-4">
               <h4 className="text-sm font-semibold text-gray-700 mb-1">
@@ -74,7 +73,6 @@ export default async function SubcategoryPage({
             </div>
           )}
 
-          {/* Price Filter */}
           <div className="mt-6 border-t pt-4">
             <h4 className="text-sm font-semibold text-gray-700 mb-2">
               Filter by Price
@@ -92,19 +90,20 @@ export default async function SubcategoryPage({
 
         {/* Products Grid */}
         <section className="flex-1 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product: any) => (
+          {products.map((product: Product) => (
             <div
               key={product._id}
               className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col"
             >
               <Link href={`/items/${product._id}`} className="block">
-                <div className="w-full aspect-square bg-gray-100 overflow-hidden">
-                  <img
-                    src={`/uploads/${
-                      product.productImages?.[0]?.thumb || "no-image.jpg"
-                    }`}
+                <div className="w-full aspect-square bg-gray-100 overflow-hidden relative">
+                  <Image
+                    src={`/uploads/${product.productImages?.[0]?.thumb || "no-image.jpg"}`}
                     alt={product.productTitle}
-                    className="w-full h-full object-cover object-center"
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    priority
                   />
                 </div>
                 <div className="p-4 space-y-2">

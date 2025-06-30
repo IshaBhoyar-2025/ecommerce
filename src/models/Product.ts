@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import { Schema, model, models } from 'mongoose';
 
 export interface IProduct {
   _id: string;
@@ -10,7 +10,7 @@ export interface IProduct {
     filename: string;
     thumb: string;
   }[];
-} 
+}
 
 const productSchema = new Schema<IProduct>({
   productTitle: { type: String, required: true, trim: true },

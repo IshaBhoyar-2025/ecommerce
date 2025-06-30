@@ -1,18 +1,17 @@
 // src/app/admin/orders/page.tsx
 
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
-import { getAllOrders } from "./actions";
+import { getAllOrders, DisplayOrder } from "./actions";
 import OrderStatusSelector from "./OrderStatusSelector";
 
+export const dynamic = "force-dynamic";
 
 export default async function ManageOrdersPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: Promise< { status?: string }>;
 }) {
-  const statusFilter = searchParams.status || "all";
+  const statusFilter = (await searchParams).status || "all";
   const orders = await getAllOrders(statusFilter);
 
   return (
@@ -58,16 +57,16 @@ export default async function ManageOrdersPage({
             </tr>
           </thead>
           <tbody>
-            {orders.map((order: any) => (
-              <tr key={order._id}>
-                <td className="border px-3 py-2">{order._id}</td>
+            {orders.map((order: DisplayOrder) => (
+              <tr key={order._id.toString()}>
+                <td className="border px-3 py-2">{order._id.toString()}</td>
                 <td className="border px-3 py-2">
                   {order.userId?.name || "Unknown"}
                   <br />
                   <small>{order.userId?.email}</small>
                 </td>
                 <td className="border px-3 py-2 w-[420px] space-y-2">
-                  {order.products.map((p: any, idx: number) => (
+                  {order.products.map((p, idx) => (
                     <div key={idx} className="border p-2 rounded bg-gray-50">
                       <p>
                         <strong>Product Name:</strong> {p.title}
@@ -79,7 +78,7 @@ export default async function ManageOrdersPage({
                         <strong>Quantity:</strong> {p.quantity}
                       </p>
                       <p>
-                        <strong>Subtotal:</strong> ₹{p.price * p.quantity}
+                        <strong>Subtotal:</strong> ₹{Number(p.price || 0) * p.quantity}
                       </p>
                     </div>
                   ))}
@@ -96,11 +95,15 @@ export default async function ManageOrdersPage({
                   {order.shippingAddressId?.address}
                 </td>
                 <td className="border px-3 py-2">
-                  {new Date(order.createdAt).toLocaleString()}
+                  {order.createdAt
+                    ? new Date(order.createdAt).toLocaleString()
+                    : "N/A"}
                 </td>
                 <td className="border px-3 py-2">
-                 <OrderStatusSelector orderId={order._id} currentStatus={order.status} />
-
+                  <OrderStatusSelector
+                    orderId={order._id.toString()}
+                    currentStatus={order.status || "pending"}
+                  />
                 </td>
                 <td className="border px-3 py-2">
                   <Link href={`/admin/orders/edit/${order._id}`}>

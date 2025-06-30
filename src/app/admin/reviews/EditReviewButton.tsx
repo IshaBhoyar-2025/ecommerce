@@ -2,7 +2,16 @@
 import { useState } from "react";
 import { updateReview } from "./actions";
 
-export default function EditReviewButton({ review }: { review: any }) {
+interface ReviewType {
+  _id: string;
+  text: string;
+  rating: number;
+  productId: string;
+  productName: string;
+  userName: string;
+}
+
+export default function EditReviewButton({ review }: { review: ReviewType }) {
   const [showForm, setShowForm] = useState(false);
   const [text, setText] = useState(review.text);
   const [rating, setRating] = useState(review.rating);
@@ -14,8 +23,8 @@ export default function EditReviewButton({ review }: { review: any }) {
 
   const handleCancel = () => {
     setShowForm(false);
-    setText(review.text); // reset to original
-    setRating(review.rating); // reset to original
+    setText(review.text);
+    setRating(review.rating);
   };
 
   return (

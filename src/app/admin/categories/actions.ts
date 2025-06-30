@@ -6,10 +6,22 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import mongodb from "mongodb";
 
+// Define the CategoryType returned from the DB
 export type CategoryType = {
+  _id: string; // Converted to string for frontend compatibility
+  categoryName: string;
+  categoryKey: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+// Internal Mongoose model type with possible Date types
+type CategoryDocType = {
   _id: mongodb.ObjectId;
   categoryName: string;
   categoryKey: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 // 🔄 Get category by ID
@@ -59,7 +71,7 @@ export async function addCategories(formData: FormData) {
     const categoryName = formData.get("categoryName")?.toString();
     const categoryKey = formData.get("categoryKey")?.toString();
 
-    if (!categoryName|| ! categoryKey) {
+    if (!categoryName || !categoryKey) {
       return { error: "All fields are required." };
     }
 
@@ -71,7 +83,7 @@ export async function addCategories(formData: FormData) {
       return { error: "Category with this key already exists." };
     }
 
-    const newCategory = new Category({ categoryName, categoryKey});
+    const newCategory = new Category({ categoryName, categoryKey });
     await newCategory.save();
 
     return { success: "Category added successfully." };
@@ -80,7 +92,6 @@ export async function addCategories(formData: FormData) {
     return { error: "Failed to add category." };
   }
 }
-
 
 // ❌ Delete category by ID
 export async function deleteCategoryById(id: string) {
@@ -97,15 +108,15 @@ export async function deleteCategoryById(id: string) {
 }
 
 // 📦 Get all categories
-
-export async function getAllCategories() {
+export async function getAllCategories(): Promise<CategoryType[]> {
   await connectDB();
-  const categories = await Category.find({}).lean<CategoryType[]>();
+  const categories = await Category.find({}).lean<CategoryDocType[]>();
 
   return categories.map((category) => ({
-    ...category,
     _id: category._id.toString(),
-    createdAt: (category as any).createdAt?.toISOString?.(),
-    updatedAt: (category as any).updatedAt?.toISOString?.(),
+    categoryName: category.categoryName,
+    categoryKey: category.categoryKey,
+    createdAt: category.createdAt?.toISOString(),
+    updatedAt: category.updatedAt?.toISOString(),
   }));
 }

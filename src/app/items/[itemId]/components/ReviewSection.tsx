@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getReviews,
   submitReview,
@@ -29,6 +29,34 @@ export default function ReviewSection({ productId }: Props) {
   const [text, setText] = useState("");
   const [rating, setRating] = useState(5);
 
+  // Fetch reviews with proper memoization to avoid dependency warning
+  const fetchReviews = useCallback(async () => {
+    const res = await getReviews(productId);
+    const mappedReviews: Review[] = res.map((r: {
+      _id: string;
+      userName: string;
+      userId: string;
+      text: string;
+      rating: number;
+    }) => ({
+      _id: r._id,
+      userName: r.userName,
+      userId: r.userId,
+      text: r.text,
+      rating: r.rating,
+    }));
+    setReviews(mappedReviews);
+
+    if (currentUser) {
+      const alreadyReviewed = mappedReviews.some(
+        (r) => r.userId === currentUser
+      );
+      setHasReviewed(alreadyReviewed);
+    } else {
+      setHasReviewed(false);
+    }
+  }, [productId, currentUser]);
+
   useEffect(() => {
     async function fetchUser() {
       const user = await getCurrentUser();
@@ -40,28 +68,7 @@ export default function ReviewSection({ productId }: Props) {
 
   useEffect(() => {
     fetchReviews();
-  }, [currentUser, productId]);
-
-  const fetchReviews = async () => {
-    const res = await getReviews(productId);
-    const mappedReviews: Review[] = res.map((r: any) => ({
-      _id: r._id?.toString?.() ?? r._id,
-      userName: r.userName,
-      userId: r.userId,
-      text: r.text,
-      rating: r.rating,
-    }));
-    setReviews(mappedReviews);
-
-    if (currentUser) {
-      const alreadyReviewed = mappedReviews.some(
-        (r: Review) => r.userId === currentUser
-      );
-      setHasReviewed(alreadyReviewed);
-    } else {
-      setHasReviewed(false);
-    }
-  };
+  }, [fetchReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,8 +79,9 @@ export default function ReviewSection({ productId }: Props) {
       setText("");
       setRating(5);
       fetchReviews();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      alert(message);
     }
   };
 
@@ -91,10 +99,7 @@ export default function ReviewSection({ productId }: Props) {
       ) : (
         <ul className="space-y-4 mb-6">
           {reviews.map((review) => (
-            <li
-              key={review._id}
-              className="bg-gray-50 rounded-lg p-4 shadow-sm"
-            >
+            <li key={review._id} className="bg-gray-50 rounded-lg p-4 shadow-sm">
               <div className="flex justify-between items-center">
                 <span className="font-semibold">{review.userName}</span>
                 <div className="flex space-x-1">

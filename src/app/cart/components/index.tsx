@@ -6,6 +6,7 @@ import { getCartProductsByIds } from '@/app/cart/actions';
 import { ProductType } from '@/app/types';
 import Header from "@/app/components/Header";
 import { getCurrentUser } from '@/app/actions';
+import Image from 'next/image'; // ✅ Import Next.js Image
 
 export function Cart() {
   const router = useRouter();
@@ -13,7 +14,6 @@ export function Cart() {
   const [cartProducts, setCartProducts] = useState<(ProductType & { quantity: number })[]>([]);
   const [savedForLater, setSavedForLater] = useState<ProductType[]>([]);
 
-  // ✅ Check login and fetch cart/saved items
   useEffect(() => {
     async function initCart() {
       const user = await getCurrentUser();
@@ -98,12 +98,11 @@ export function Cart() {
     localStorage.setItem('savedForLater', JSON.stringify(updatedSaved));
   };
 
-  // ✅ Proceed to shipping; clean cart if order is already paid
   const handlePlaceOrder = () => {
     if (!isLoggedIn) {
       router.push('/login');
     } else {
-      router.push('/shipping'); // Then in success page, clear cart
+      router.push('/shipping');
     }
   };
 
@@ -116,14 +115,15 @@ export function Cart() {
         <p className="text-gray-500">Your cart is empty.</p>
       ) : (
         <div className="flex flex-col md:flex-row justify-between gap-8">
-          {/* LEFT SIDE */}
           <div className="flex-1 space-y-6">
             {cartProducts.map((product) => (
               <div key={product._id} className="flex flex-col md:flex-row items-center gap-4 border-b pb-4">
-                <img
-                  src={`/uploads/${product.productImages?.[0]?.thumb || ''}`}
+                <Image
+                  src={`/uploads/${product.productImages?.[0]?.thumb || 'default.jpg'}`}
                   alt={product.productTitle}
-                  className="w-32 h-32 object-cover rounded"
+                  width={128}
+                  height={128}
+                  className="object-cover rounded"
                 />
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold">{product.productTitle}</h3>
@@ -132,7 +132,7 @@ export function Cart() {
                   <div className="flex items-center gap-3 mt-2">
                     <button onClick={() => handleQuantityChange(product._id, 'decrease')} className="px-2 py-1 bg-gray-200 rounded">−</button>
                     <span>{product.quantity}</span>
-                     <button onClick={() => handleQuantityChange(product._id, 'increase')} className="px-2 py-1 bg-gray-200 rounded">+</button>
+                    <button onClick={() => handleQuantityChange(product._id, 'increase')} className="px-2 py-1 bg-gray-200 rounded">+</button>
                   </div>
 
                   <div className="flex items-center gap-4 mt-3">
@@ -141,7 +141,7 @@ export function Cart() {
                   </div>
 
                   <p className="mt-2 font-bold text-blue-600">₹{product.price * product.quantity}</p>
-                 </div>
+                </div>
               </div>
             ))}
 
@@ -150,12 +150,17 @@ export function Cart() {
                 <h2 className="text-xl font-bold mb-4">Saved For Later</h2>
                 {savedForLater.map(product => (
                   <div key={product._id} className="flex gap-4 border rounded p-4 mb-4">
-                    <img src={`/uploads/${product.productImages?.[0]?.thumb || ''}`} alt={product.productTitle} className="w-24 h-24 object-cover rounded" />
+                    <Image
+                      src={`/uploads/${product.productImages?.[0]?.thumb || 'default.jpg'}`}
+                      alt={product.productTitle}
+                      width={96}
+                      height={96}
+                      className="object-cover rounded"
+                    />
                     <div className="flex-1">
-            {/* Saved For Later */}
                       <h3 className="font-semibold">{product.productTitle}</h3>
                       <p className="text-blue-600 font-bold mt-2">₹{product.price}</p>
-                        <div className="flex gap-4 mt-2">
+                      <div className="flex gap-4 mt-2">
                         <button onClick={() => handleMoveToCart(product._id)} className="text-blue-600 hover:underline">MOVE TO CART</button>
                         <button onClick={() => handleRemoveSaved(product._id)} className="text-blue-600 hover:underline">REMOVE</button>
                       </div>
@@ -165,15 +170,13 @@ export function Cart() {
               </div>
             )}
 
-            {/* Order Button */}
             <div className="text-right mt-8">
               <button onClick={handlePlaceOrder} className="bg-orange-500 text-white px-6 py-3 rounded hover:bg-orange-600">
-                Proceed to Buy  
+                Proceed to Buy
               </button>
             </div>
           </div>
 
-          {/* RIGHT SIDE: Price Summary */}
           <div className="w-full md:w-96 border rounded-lg p-6 bg-white shadow-sm">
             <h3 className="text-lg font-bold mb-4 border-b pb-2">PRICE DETAILS</h3>
             <div className="text-sm space-y-2">

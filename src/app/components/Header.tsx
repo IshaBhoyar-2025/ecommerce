@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getCurrentUser, logoutUser } from "../actions"; // Adjust paths as necessary
+import { getCurrentUser, logoutUser } from "../actions";
 import { FaShoppingCart, FaUserCircle, FaSearch } from "react-icons/fa";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<string[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 

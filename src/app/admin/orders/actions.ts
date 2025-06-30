@@ -1,4 +1,3 @@
-// src/app/admin/orders/actions.ts
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
@@ -8,9 +7,11 @@ import type { IProduct } from "@/models/Product";
 import "@/models/User";
 import "@/models/ShippingAddress";
 import { Types } from "mongoose";
+import { ReactNode } from "react";
 
-// -- Type for a populated order --
-type PopulatedOrderType = {
+// -- Type for returned order structure --
+export type DisplayOrder = {
+  amount: ReactNode;
   _id: Types.ObjectId;
   paymentId?: string;
   status?: string;
@@ -26,37 +27,68 @@ type PopulatedOrderType = {
     phone: string;
     address: string;
   };
-  products?: {
+  products: {
+    price: ReactNode;
     productId: string;
     quantity: number;
     title?: string;
   }[];
 };
 
-export async function getAllOrders(status: string) {
+interface RawOrderType {
+  _id: Types.ObjectId;
+  paymentId?: string;
+  status?: string;
+  createdAt?: Date;
+  amount?: number;
+  userId?: {
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+  };
+  shippingAddressId?: {
+    _id: Types.ObjectId;
+    fullName: string;
+    phone: string;
+    address: string;
+  };
+  products: { productId: string; quantity: number }[];
+}
+
+export async function getAllOrders(status: string): Promise<DisplayOrder[]> {
   await connectDB();
-  const query: any = {};
+
+  const query: Record<string, string> = {};
   if (status !== "all") query.status = status;
 
-  let orders = await Order.find(query)
+  const rawOrders = await Order.find(query)
     .populate("userId", "name email")
     .populate("shippingAddressId")
     .lean();
 
-  orders = await Promise.all(
-    orders.map(async (order: any) => {
+  const orders: DisplayOrder[] = await Promise.all(
+    rawOrders.map(async (rawOrder) => {
+      const order = rawOrder as unknown as RawOrderType;
+
       const updatedProducts = await Promise.all(
-        order.products.map(async (product: any) => {
-          const productDoc = await Product.findById(product.productId).lean() as IProduct | null;
+        (order.products ?? []).map(async (product) => {
+          const productDoc = await Product.findById(product.productId).lean<IProduct | null>();
           return {
             ...product,
+            price: productDoc?.price ?? 0,
             title: productDoc?.productTitle || "Unknown",
           };
         })
       );
 
       return {
-        ...order,
+        amount: order.amount ?? 0,
+        _id: order._id,
+        paymentId: order.paymentId,
+        status: order.status,
+        createdAt: order.createdAt?.toISOString(),
+        userId: order.userId,
+        shippingAddressId: order.shippingAddressId,
         products: updatedProducts,
       };
     })
@@ -65,14 +97,39 @@ export async function getAllOrders(status: string) {
   return orders;
 }
 
-export async function getOrderById(id: string): Promise<PopulatedOrderType | null> {
+export async function getOrderById(id: string): Promise<DisplayOrder | null> {
   await connectDB();
-  const order = await Order.findById(id)
+
+  const rawOrder = await Order.findById(id)
     .populate("userId", "name email")
     .populate("shippingAddressId")
     .lean();
 
-  return order as PopulatedOrderType | null;
+  if (!rawOrder) return null;
+
+  const order = rawOrder as unknown as RawOrderType;
+
+  const updatedProducts = await Promise.all(
+    (order.products ?? []).map(async (product) => {
+      const productDoc = await Product.findById(product.productId).lean<IProduct | null>();
+      return {
+        ...product,
+        price: productDoc?.price ?? 0,
+        title: productDoc?.productTitle || "Unknown",
+      };
+    })
+  );
+
+  return {
+    amount: order.amount ?? 0,
+    _id: order._id,
+    paymentId: order.paymentId,
+    status: order.status,
+    createdAt: order.createdAt?.toISOString(),
+    userId: order.userId,
+    shippingAddressId: order.shippingAddressId,
+    products: updatedProducts,
+  };
 }
 
 export async function updateOrderStatus(orderId: string, status: string) {
@@ -107,7 +164,7 @@ export async function updateOrderFields(orderId: string, formData: FormData): Pr
 
     const ShippingAddress = (await import("@/models/ShippingAddress")).default;
 
-    // Update order's paymentId
+    // Update paymentId
     await Order.findByIdAndUpdate(orderId, { paymentId });
 
     // Update shipping address
@@ -118,7 +175,7 @@ export async function updateOrderFields(orderId: string, formData: FormData): Pr
     });
 
     return { success: "Order updated successfully" };
-  } catch (err: any) {
+  } catch (err) {
     console.error("Update error:", err);
     return { error: "Something went wrong" };
   }

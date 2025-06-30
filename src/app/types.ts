@@ -1,6 +1,5 @@
-import { ReactNode } from "react";
-
 // types.ts
+
 export type ProductType = {
   _id: string;
   productTitle: string;
@@ -18,10 +17,9 @@ export type CategoryType = {
   _id: string;
   categoryKey: string;
   categoryName: string;
-  subcategories: { name: string; key: string }[]; // assuming this structure
+  subcategories: { name: string; key: string }[];
 };
 
-// src/app/types.ts
 export type PopulatedOrder = {
   _id: string;
   status: string;

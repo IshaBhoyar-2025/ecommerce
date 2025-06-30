@@ -2,8 +2,6 @@
 
 import { connectDB } from "@/lib/mongodb";
 import Review from "@/models/Review";
-import Product from "@/models/Product";
-import User from "@/models/User";
 import mongoose from "mongoose";
 
 export async function getAllReviewsWithProduct() {
@@ -31,7 +29,7 @@ export async function getAllReviewsWithProduct() {
     {
       $project: {
         _id: { $toString: "$_id" },
-        productId: { $toString: "$product._id" }, // Include productId
+        productId: { $toString: "$product._id" },
         productName: "$product.productTitle",
         userName: "$user.name",
         rating: 1,

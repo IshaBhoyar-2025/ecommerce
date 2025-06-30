@@ -6,9 +6,9 @@ import Header from "@/app/components/Header";
 export default async function ItemDetailPage({
   params,
 }: {
-  params: { itemId: string };
+  params:Promise < { itemId: string }>;
 }) {
-  const product = await getProductById(params.itemId);
+  const product = await getProductById( await ((await params).itemId));
 
   if (!product) {
     return (

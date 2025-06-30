@@ -4,7 +4,7 @@ import { EditSubCategoryForm } from "./EditSubCategoryForm";
 import { redirect } from "next/navigation";
 import { getAllCategories } from "@/app/admin/categories/actions";
 
-export default async function EditSubCategoryPage({ params }: { params: { id: string } }) {
+export default async function EditSubCategoryPage({ params }: { params: Promise< { id: string }> }) {
   const admin = await getCurrentAdmin();
   if (!admin) {
     redirect("/admin/login");
@@ -15,7 +15,7 @@ export default async function EditSubCategoryPage({ params }: { params: { id: st
     return <div className="text-center mt-10 text-red-600">Categories not found.</div>;
   }
 
-  const subCategory = await getSubCategoryById(params.id);
+  const subCategory = await getSubCategoryById((await params).id);
 
   if (!subCategory) return <div className="text-center mt-10 text-red-600">Subcategory not found.</div>;
    
