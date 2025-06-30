@@ -134,7 +134,11 @@ export async function deleteProductById(id: string) {
 
 // 📦 Get All Products
 export async function getAllProducts() {
+
+  try{
   await connectDB();
+
+
 
   const products = await Product.aggregate([
     {
@@ -168,7 +172,7 @@ export async function getAllProducts() {
         categoryKey: 1,
       },
     },
-  ]);
+  ]); 
 
   return products.map((product) => ({
     _id: product._id.toString(),
@@ -181,6 +185,10 @@ export async function getAllProducts() {
     subCategoryName: product.subCategoryName,
     productImages: product.productImages,
   }));
+} catch (err) {
+    console.error("Error fetching products:", err);
+    return [];
+  }
 }
 
 // 🔍 Get Product By ID
