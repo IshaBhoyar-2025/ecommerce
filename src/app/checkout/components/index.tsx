@@ -6,7 +6,7 @@ import { getCartProductsByIds } from "@/app/cart/actions";
 import { createOrder, updateOrderStatus } from "@/app/checkout/actions";
 import Header from "@/app/components/Header";
 import { ProductType } from "@/app/types";
-import Image from "next/image";
+import SecureImage from "@/app/components/SecureImage";
 
 interface CheckoutPageProps {
   address: {
@@ -36,7 +36,6 @@ interface RazorpayPaymentFailedResponse {
   };
 }
 
-// Minimal Razorpay options interface
 interface RazorpayOptions {
   key: string;
   amount: number;
@@ -62,7 +61,7 @@ interface RazorpayInstance {
 }
 
 interface RazorpayConstructor {
-  new (options: RazorpayOptions): RazorpayInstance;
+  new(options: RazorpayOptions): RazorpayInstance;
 }
 
 declare global {
@@ -206,12 +205,15 @@ export function CheckoutPage({ address }: CheckoutPageProps) {
             <>
               {cartProducts.map((product) => (
                 <div key={product._id} className="flex gap-4 border-b pb-4">
-                  <Image
-                    src={`/uploads/${product.productImages?.[0]?.thumb || ""}`}
+                  <SecureImage
+                    src={
+                      product.productImages?.[0]?.thumb
+
+                    }
                     alt={product.productTitle}
                     width={128}
                     height={128}
-                    className="rounded object-cover"
+                    className="object-cover rounded"
                   />
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold">{product.productTitle}</h3>

@@ -7,6 +7,7 @@ import { ProductType } from "../types";
 import Header from "@/app/components/Header";
 import Image from "next/image";
 import { CategoryType } from "../admin/categories/actions";
+import SecureImage from "../components/SecureImage";
 
 interface Props {
   products: ProductType[];
@@ -116,11 +117,12 @@ export function Home({ products, categories }: Props) {
               >
                 <Link href={`/items/${product._id}`} className="block">
                   <div className="w-full aspect-square bg-gray-100 overflow-hidden relative">
-                    <Image
-                      src={`/uploads/${product.productImages?.[0]?.thumb || "no-image.jpg"}`}
+                    <SecureImage
+                      src={product.productImages?.[0]?.thumb}
                       alt={product.productTitle}
-                      fill
-                      className="object-cover object-center"
+                      width={300}
+                      height={300}
+                      className="object-cover w-full h-full"
                     />
                   </div>
                   <div className="p-4 space-y-1">

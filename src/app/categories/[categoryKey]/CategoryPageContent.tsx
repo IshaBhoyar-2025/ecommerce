@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
 import { ProductType } from "@/app/types";
+import SecureImage from "@/app/components/SecureImage";
 
 interface SubCategoryType {
   _id: string;
@@ -82,16 +83,17 @@ export default function CategoryPageContent({
         <section className="flex-1 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
             <div
-              key={product._id}
+              key={product._id} 
               className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col"
             >
               <Link href={`/items/${product._id}`} className="block">
                 <div className="w-full aspect-square bg-gray-100 overflow-hidden relative">
-                  <Image
-                    src={`/uploads/${product.productImages?.[0]?.thumb || "no-image.jpg"}`}
+                  <SecureImage
+                    src={product.productImages?.[0]?.thumb }
                     alt={product.productTitle}
-                    fill
-                    className="object-cover object-center"
+                    width={300}
+                    height={300}
+                    className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
                   />
                 </div>
                 <div className="p-4 space-y-2">

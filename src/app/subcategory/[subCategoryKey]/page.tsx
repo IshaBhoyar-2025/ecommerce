@@ -8,6 +8,7 @@ import {
 import Header from "@/app/components/Header";
 import Link from "next/link";
 import Image from "next/image";
+import SecureImage from "@/app/components/SecureImage";
 
 interface Product {
   _id: string;
@@ -97,14 +98,13 @@ export default async function SubcategoryPage({
             >
               <Link href={`/items/${product._id}`} className="block">
                 <div className="w-full aspect-square bg-gray-100 overflow-hidden relative">
-                  <Image
-                    src={`/uploads/${product.productImages?.[0]?.thumb || "no-image.jpg"}`}
+                 <SecureImage
+                    src={product.productImages?.[0]?.thumb || ""}
                     alt={product.productTitle}
-                    fill
-                    className="object-cover object-center"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    priority
-                  />
+                    width={300}
+                    height={300}
+                    className="object-cover w-full h-full"
+                  />  
                 </div>
                 <div className="p-4 space-y-2">
                   <h3 className="text-lg font-semibold text-gray-900 truncate">

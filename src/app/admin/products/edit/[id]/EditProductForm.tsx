@@ -5,6 +5,7 @@ import { updateProduct } from "@/app/admin/products/actions";
 import { useRouter } from "next/navigation";
 import { AiFillCloseCircle } from "react-icons/ai";
 import Image from "next/image";
+import SecureImage from "@/app/components/SecureImage";
 
 type Category = {
   categoryName: string;
@@ -173,13 +174,13 @@ export function EditProductForm({
               >
                 <AiFillCloseCircle className="text-red-600 w-6 h-6" />
               </button>
-
-              <Image
-                src={`/uploads/${image.thumb}`}
+              <SecureImage
+                src={image.thumb}
                 alt={`Product ${index + 1}`}
-                fill
+                fill={true}
                 className="rounded-md border object-cover"
-              />
+              />  
+
             </div>
           ))}
         </div>

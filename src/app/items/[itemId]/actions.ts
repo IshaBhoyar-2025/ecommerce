@@ -91,7 +91,7 @@ export async function getProductById(productId: string): Promise<ProductResult |
     categoryName: product.categoryName,
     productImages: product.productImages.map((img: ProductImage) => ({
       filename: img.filename,
-      thumb: `/uploads/${img.thumb}`,
+      thumb:img.thumb,
     })),
   };
 }

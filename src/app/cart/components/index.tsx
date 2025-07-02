@@ -7,6 +7,7 @@ import { ProductType } from '@/app/types';
 import Header from "@/app/components/Header";
 import { getCurrentUser } from '@/app/actions';
 import Image from 'next/image'; // ✅ Import Next.js Image
+import SecureImage from '@/app/components/SecureImage';
 
 export function Cart() {
   const router = useRouter();
@@ -150,11 +151,11 @@ export function Cart() {
                 <h2 className="text-xl font-bold mb-4">Saved For Later</h2>
                 {savedForLater.map(product => (
                   <div key={product._id} className="flex gap-4 border rounded p-4 mb-4">
-                    <Image
+                    <SecureImage
                       src={`/uploads/${product.productImages?.[0]?.thumb || 'default.jpg'}`}
                       alt={product.productTitle}
-                      width={96}
-                      height={96}
+                      width={128}
+                      height={128}
                       className="object-cover rounded"
                     />
                     <div className="flex-1">

@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import SecureImage from "@/app/components/SecureImage";
 
 interface Props {
   productId: string;
@@ -22,36 +22,40 @@ export function Item({ productId, productImages }: Props) {
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 mt-6 w-full">
-      {/* Main Selected Image */}
+      {/* Selected Main Image */}
       {selectedImage && (
         <div className="mb-6 flex justify-center">
-          <Image
+          <SecureImage
             src={selectedImage}
-            alt="Selected"
-            width={350}
-            height={350}
-            className="rounded-xl border shadow-md object-contain"
+            alt="Selected Product"
+            width={400}
+            height={400}
+            className="rounded-lg object-cover shadow-lg transition-transform hover:scale-105"
           />
         </div>
       )}
 
       {/* Thumbnail Gallery */}
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mb-6">
-        {productImages.map((image) => (
-          <Image
-            key={image.filename}
-            src={image.thumb}
-            alt={image.filename}
-            width={80}
-            height={80}
-            className={`rounded-lg border cursor-pointer transition ${
-              selectedImage === image.thumb
-                ? "ring-2 ring-blue-500 scale-105"
-                : "hover:scale-105"
-            }`}
-            onClick={() => setSelectedImage(image.thumb)}
-          />
+       {productImages.map((image) => (
+        
+  <SecureImage
+    src={image.thumb} // ✅ correct
+    key={image.filename}
+    alt={image.filename}
+    width={100}
+    height={100}
+    className={`w-full h-24 object-cover rounded-lg cursor-pointer transition-transform ${
+      selectedImage === image.thumb
+        ? "ring-2 ring-blue-500 scale-105"
+        : "hover:scale-105"
+    }`}
+    onClick={() => setSelectedImage(image.thumb)}
+  />
         ))}
+  
+
+      
       </div>
 
       {/* Add to Cart Button */}

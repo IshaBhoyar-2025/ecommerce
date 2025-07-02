@@ -4,13 +4,12 @@ import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import SubCategory from "@/models/SubCategory";
 import { revalidatePath } from "next/cache";
-import fs from "fs";
-import path from "path";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
+import { uploadToS3 } from "@/lib/s3";
 
 // ➕ Add Product with Images
-export async function addProduct(formData: FormData) {
+export async function addProduct(formData: FormData): Promise<{ success?: boolean; error?: string }> {
   const productTitle = formData.get("productTitle")?.toString();
   const productDescription = formData.get("productDescription")?.toString();
   const price = formData.get("price")?.toString();
@@ -21,25 +20,22 @@ export async function addProduct(formData: FormData) {
     return { error: "All fields are required." };
   }
 
-  const images = [];
+  const images: { filename: string; thumb: string }[] = [];
 
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const uniqueName = `${uuidv4()}.webp`;
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    const fullPath = path.join(uploadsDir, uniqueName);
-    const thumbPath = path.join(uploadsDir, `thumb-${uniqueName}`);
+    const fullImage = await sharp(buffer).resize(800).webp().toBuffer();
+    const thumbImage = await sharp(buffer).resize(300).webp().toBuffer();
 
-    fs.mkdirSync(uploadsDir, { recursive: true });
-
-    await sharp(buffer).resize(800).toFormat("webp").toFile(fullPath);
-    await sharp(buffer).resize(300).toFormat("webp").toFile(thumbPath);
+    const fullImageUrl = await uploadToS3(fullImage, uniqueName, "image/webp");
+    const thumbUrl = await uploadToS3(thumbImage, `thumb-${uniqueName}`, "image/webp");
 
     images.push({
       filename: uniqueName,
-      thumb: `thumb-${uniqueName}`,
+      thumb:  `thumb-${uniqueName}`,
     });
   }
 
@@ -66,7 +62,7 @@ export async function updateProduct(
   productId: string,
   formData: FormData,
   images: { filename: string; thumb: string }[] = []
-) {
+): Promise<{ success?: boolean; error?: string }> {
   const title = formData.get("productTitle")?.toString();
   const description = formData.get("productDescription")?.toString();
   const price = formData.get("price")?.toString();
@@ -78,7 +74,7 @@ export async function updateProduct(
   }
 
   await connectDB();
-  const updatedImages = images || [];
+  const updatedImages = [...images];
 
   if (files.length > 0 && files[0].size > 0) {
     for (const file of files) {
@@ -86,14 +82,11 @@ export async function updateProduct(
       const buffer = Buffer.from(arrayBuffer);
       const uniqueName = `${uuidv4()}.webp`;
 
-      const uploadsDir = path.join(process.cwd(), "public", "uploads");
-      const fullPath = path.join(uploadsDir, uniqueName);
-      const thumbPath = path.join(uploadsDir, `thumb-${uniqueName}`);
+      const fullImage = await sharp(buffer).resize(800).webp().toBuffer();
+      const thumbImage = await sharp(buffer).resize(300).webp().toBuffer();
 
-      fs.mkdirSync(uploadsDir, { recursive: true });
-
-      await sharp(buffer).resize(800).toFormat("webp").toFile(fullPath);
-      await sharp(buffer).resize(300).toFormat("webp").toFile(thumbPath);
+      const fullImageUrl = await uploadToS3(fullImage, uniqueName, "image/webp");
+      const thumbUrl = await uploadToS3(thumbImage, `thumb-${uniqueName}`, "image/webp");
 
       updatedImages.push({
         filename: uniqueName,
@@ -120,7 +113,7 @@ export async function updateProduct(
 }
 
 // ❌ Delete Product
-export async function deleteProductById(id: string) {
+export async function deleteProductById(id: string): Promise<{ success?: boolean; error?: string }> {
   try {
     await connectDB();
     await Product.findByIdAndDelete(id);
@@ -133,66 +126,63 @@ export async function deleteProductById(id: string) {
 }
 
 // 📦 Get All Products
-export async function getAllProducts() {
+export async function getAllProducts(): Promise<any[]> {
+  try {
+    await connectDB();
 
-  try{
-  await connectDB();
-
-
-
-  const products = await Product.aggregate([
-    {
-      $lookup: {
-        from: "subcategories",
-        localField: "subCategoryKey",
-        foreignField: "subCategoryKey",
-        as: "subCategory",
+    const products = await Product.aggregate([
+      {
+        $lookup: {
+          from: "subcategories",
+          localField: "subCategoryKey",
+          foreignField: "subCategoryKey",
+          as: "subCategory",
+        },
       },
-    },
-    { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: "categories",
-        localField: "subCategory.parentCategoryKey",
-        foreignField: "categoryKey",
-        as: "category",
+      { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "subCategory.parentCategoryKey",
+          foreignField: "categoryKey",
+          as: "category",
+        },
       },
-    },
-    { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
-    {
-      $project: {
-        _id: 1,
-        productTitle: 1,
-        productDescription: 1,
-        subCategoryName: "$subCategory.subCategoryName",
-        categoryName: "$category.categoryName",
-        price: 1,
-        productImages: 1,
-        subCategoryKey: 1,
-        categoryKey: 1,
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          productTitle: 1,
+          productDescription: 1,
+          subCategoryName: "$subCategory.subCategoryName",
+          categoryName: "$category.categoryName",
+          price: 1,
+          productImages: 1,
+          subCategoryKey: 1,
+          categoryKey: 1,
+        },
       },
-    },
-  ]); 
+    ]);
 
-  return products.map((product) => ({
-    _id: product._id.toString(),
-    productTitle: product.productTitle,
-    productDescription: product.productDescription,
-    price: product.price,
-    subCategoryKey: product.subCategoryKey,
-    categoryKey: product.categoryKey,
-    categoryName: product.categoryName,
-    subCategoryName: product.subCategoryName,
-    productImages: product.productImages,
-  }));
-} catch (err) {
+    return products.map((product) => ({
+      _id: product._id.toString(),
+      productTitle: product.productTitle,
+      productDescription: product.productDescription,
+      price: product.price,
+      subCategoryKey: product.subCategoryKey,
+      categoryKey: product.categoryKey,
+      categoryName: product.categoryName,
+      subCategoryName: product.subCategoryName,
+      productImages: product.productImages,
+    }));
+  } catch (err) {
     console.error("Error fetching products:", err);
     return [];
   }
 }
 
 // 🔍 Get Product By ID
-export async function getProductById(id: string) {
+export async function getProductById(id: string): Promise<any | null> {
   try {
     await connectDB();
     const product = await Product.findById(id);
@@ -203,7 +193,7 @@ export async function getProductById(id: string) {
 }
 
 // 🔍 Get SubCategory by Key
-export async function getSubCategoryByKey(subCategoryKey: string) {
+export async function getSubCategoryByKey(subCategoryKey: string): Promise<any | null> {
   try {
     await connectDB();
     const subCategory = await SubCategory.findOne({ subCategoryKey });

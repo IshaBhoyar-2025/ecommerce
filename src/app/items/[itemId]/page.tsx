@@ -6,9 +6,10 @@ import Header from "@/app/components/Header";
 export default async function ItemDetailPage({
   params,
 }: {
-  params:Promise < { itemId: string }>;
+  params: Promise<{ itemId: string }>;
 }) {
-  const product = await getProductById( await ((await params).itemId));
+  const { itemId } = await params;
+  const product = await getProductById(itemId);
 
   if (!product) {
     return (
@@ -22,13 +23,10 @@ export default async function ItemDetailPage({
     <div className="bg-gray-100 min-h-screen pt-24">
       <Header />
 
-      <main className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-8 ">
+      <main className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-8">
         <div className="grid md:grid-cols-2 gap-10">
-          {/* Left: Images + Add to Cart */}
-          <Item
-            productId={product._id}
-            productImages={product.productImages}
-          />
+          {/* Left: Image Gallery + Cart */}
+          <Item productId={product._id} productImages={product.productImages || []} />
 
           {/* Right: Product Info */}
           <div className="flex flex-col space-y-6 justify-between">
@@ -59,7 +57,6 @@ export default async function ItemDetailPage({
               </p>
             </div>
 
-            {/* Reviews */}
             <div className="pt-4 border-t border-gray-200">
               <ReviewSection productId={product._id} />
             </div>
