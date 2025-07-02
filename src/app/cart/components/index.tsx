@@ -6,7 +6,6 @@ import { getCartProductsByIds } from '@/app/cart/actions';
 import { ProductType } from '@/app/types';
 import Header from "@/app/components/Header";
 import { getCurrentUser } from '@/app/actions';
-import Image from 'next/image'; // ✅ Import Next.js Image
 import SecureImage from '@/app/components/SecureImage';
 
 export function Cart() {
@@ -119,8 +118,8 @@ export function Cart() {
           <div className="flex-1 space-y-6">
             {cartProducts.map((product) => (
               <div key={product._id} className="flex flex-col md:flex-row items-center gap-4 border-b pb-4">
-                <Image
-                  src={`/uploads/${product.productImages?.[0]?.thumb || 'default.jpg'}`}
+                <SecureImage
+                  src={product.productImages?.[0]?.thumb }
                   alt={product.productTitle}
                   width={128}
                   height={128}
