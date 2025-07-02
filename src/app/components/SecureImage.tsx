@@ -1,29 +1,39 @@
-
-// src/app/components/SecureImage.tsx
 "use client";
+
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import { ImageProps } from "next/image";
+import Image, { ImageProps } from "next/image";
 
-
+// Define props interface and use it
 interface SecureImageProps extends Omit<ImageProps, "src"> {
   src: string;
   onClick?: () => void;
 }
 
-export default function SecureImage({ src, alt, fill, className, width, height,onClick }: { src: string, alt?: string, fill?: boolean, className?: string, width?: number, height?: number, onClick?: () => void }) {
+export default function SecureImage({
+  src,
+  alt = "Secure Image",
+  fill,
+  className = "rounded-md border object-cover",
+  width,
+  height,
+  onClick,
+}: SecureImageProps) {
   const [signedUrl, setSignedUrl] = useState("");
 
   useEffect(() => {
     const fetchSignedUrl = async () => {
-      const res = await fetch("/api/s3/get-signed-url", {
-        method: "POST",
-        body: JSON.stringify({ key: src }),
-        headers: { "Content-Type": "application/json" },
-      });
+      try {
+        const res = await fetch("/api/s3/get-signed-url", {
+          method: "POST",
+          body: JSON.stringify({ key: src }),
+          headers: { "Content-Type": "application/json" },
+        });
 
-      const data = await res.json();
-      if (data.url) setSignedUrl(data.url);
+        const data = await res.json();
+        if (data.url) setSignedUrl(data.url);
+      } catch (err) {
+        console.error("Failed to fetch signed URL", err);
+      }
     };
 
     fetchSignedUrl();
@@ -34,13 +44,13 @@ export default function SecureImage({ src, alt, fill, className, width, height,o
   return (
     <Image
       src={signedUrl}
-      alt={alt || "Secure Image"}
+      alt={alt}
       fill={fill}
       width={width}
       height={height}
       onClick={onClick}
-      className={className || "rounded-md border object-cover"}
-      unoptimized 
+      className={className}
+      unoptimized
     />
   );
 }

@@ -56,7 +56,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         currentDescription={product.productDescription}
         currentCategoryKey={subCategory.parentCategoryKey}
         currentSubCategoryKey={product.subCategoryKey}
-        currentPrice={product.price}
+        currentPrice={product.price .toString()}
         categories={allCategories}
         subcategories={allSubcategories}
         productImages={productImages}

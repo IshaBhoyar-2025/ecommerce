@@ -7,7 +7,6 @@ import {
 
 import Header from "@/app/components/Header";
 import Link from "next/link";
-import Image from "next/image";
 import SecureImage from "@/app/components/SecureImage";
 
 interface Product {

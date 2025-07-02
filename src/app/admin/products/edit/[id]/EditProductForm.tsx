@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { updateProduct } from "@/app/admin/products/actions";
 import { useRouter } from "next/navigation";
 import { AiFillCloseCircle } from "react-icons/ai";
-import Image from "next/image";
 import SecureImage from "@/app/components/SecureImage";
 
 type Category = {

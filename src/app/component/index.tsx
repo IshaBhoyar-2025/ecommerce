@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ProductType } from "../types";
 import Header from "@/app/components/Header";
-import Image from "next/image";
 import { CategoryType } from "../admin/categories/actions";
 import SecureImage from "../components/SecureImage";
 

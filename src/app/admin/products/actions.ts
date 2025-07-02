@@ -7,8 +7,27 @@ import { revalidatePath } from "next/cache";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 import { uploadToS3 } from "@/lib/s3";
+import mongoose from "mongoose";
 
-// ➕ Add Product with Images
+// Interfaces
+export interface ProductImage {
+  filename: string;
+  thumb: string;
+}
+
+export interface ProductType {
+  _id: string;
+  productTitle: string;
+  productDescription: string;
+  price: number;
+  subCategoryKey: string;
+  subCategoryName?: string;
+  categoryName?: string;
+  categoryKey?: string;
+  productImages: ProductImage[];
+}
+
+// ➕ Add Product
 export async function addProduct(formData: FormData): Promise<{ success?: boolean; error?: string }> {
   const productTitle = formData.get("productTitle")?.toString();
   const productDescription = formData.get("productDescription")?.toString();
@@ -20,7 +39,7 @@ export async function addProduct(formData: FormData): Promise<{ success?: boolea
     return { error: "All fields are required." };
   }
 
-  const images: { filename: string; thumb: string }[] = [];
+  const images: ProductImage[] = [];
 
   for (const file of files) {
     const arrayBuffer = await file.arrayBuffer();
@@ -30,12 +49,12 @@ export async function addProduct(formData: FormData): Promise<{ success?: boolea
     const fullImage = await sharp(buffer).resize(800).webp().toBuffer();
     const thumbImage = await sharp(buffer).resize(300).webp().toBuffer();
 
-    const fullImageUrl = await uploadToS3(fullImage, uniqueName, "image/webp");
-    const thumbUrl = await uploadToS3(thumbImage, `thumb-${uniqueName}`, "image/webp");
+    await uploadToS3(fullImage, uniqueName, "image/webp");
+    await uploadToS3(thumbImage, `thumb-${uniqueName}`, "image/webp");
 
     images.push({
       filename: uniqueName,
-      thumb:  `thumb-${uniqueName}`,
+      thumb: `thumb-${uniqueName}`,
     });
   }
 
@@ -45,15 +64,15 @@ export async function addProduct(formData: FormData): Promise<{ success?: boolea
       productTitle,
       productDescription,
       subCategoryKey,
-      price,
+      price: Number(price),
       productImages: images,
     });
 
     revalidatePath("/admin/products");
     return { success: true };
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    return { error: "Failed to add product. " + errorMessage };
+    console.error("Add Product Error:", err);
+    return { error: "Failed to add product." };
   }
 }
 
@@ -61,20 +80,21 @@ export async function addProduct(formData: FormData): Promise<{ success?: boolea
 export async function updateProduct(
   productId: string,
   formData: FormData,
-  images: { filename: string; thumb: string }[] = []
+  existingImages: ProductImage[] = []
 ): Promise<{ success?: boolean; error?: string }> {
-  const title = formData.get("productTitle")?.toString();
-  const description = formData.get("productDescription")?.toString();
+  const productTitle = formData.get("productTitle")?.toString();
+  const productDescription = formData.get("productDescription")?.toString();
   const price = formData.get("price")?.toString();
   const subCategoryKey = formData.get("subCategoryKey")?.toString();
   const files = formData.getAll("productImages") as File[];
 
-  if (!title || !description || !price || !subCategoryKey) {
+  if (!productTitle || !productDescription || !price || !subCategoryKey) {
     return { error: "All fields are required." };
   }
 
   await connectDB();
-  const updatedImages = [...images];
+
+  const updatedImages: ProductImage[] = [...existingImages];
 
   if (files.length > 0 && files[0].size > 0) {
     for (const file of files) {
@@ -85,8 +105,8 @@ export async function updateProduct(
       const fullImage = await sharp(buffer).resize(800).webp().toBuffer();
       const thumbImage = await sharp(buffer).resize(300).webp().toBuffer();
 
-      const fullImageUrl = await uploadToS3(fullImage, uniqueName, "image/webp");
-      const thumbUrl = await uploadToS3(thumbImage, `thumb-${uniqueName}`, "image/webp");
+      await uploadToS3(fullImage, uniqueName, "image/webp");
+      await uploadToS3(thumbImage, `thumb-${uniqueName}`, "image/webp");
 
       updatedImages.push({
         filename: uniqueName,
@@ -97,9 +117,9 @@ export async function updateProduct(
 
   try {
     await Product.findByIdAndUpdate(productId, {
-      productTitle: title,
-      productDescription: description,
-      price,
+      productTitle,
+      productDescription,
+      price: Number(price),
       subCategoryKey,
       productImages: updatedImages,
     });
@@ -107,8 +127,8 @@ export async function updateProduct(
     revalidatePath("/admin/products");
     return { success: true };
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    return { error: "Failed to update product. " + errorMessage };
+    console.error("Update Product Error:", err);
+    return { error: "Failed to update product." };
   }
 }
 
@@ -120,85 +140,110 @@ export async function deleteProductById(id: string): Promise<{ success?: boolean
     revalidatePath("/admin/products");
     return { success: true };
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    return { error: "Failed to delete product. " + errorMessage };
+    console.error("Delete Product Error:", err);
+    return { error: "Failed to delete product." };
   }
 }
 
 // 📦 Get All Products
-export async function getAllProducts(): Promise<any[]> {
+export async function getAllProducts(): Promise<ProductType[]> {
   try {
     await connectDB();
 
-    const products = await Product.aggregate([
-      {
-        $lookup: {
-          from: "subcategories",
-          localField: "subCategoryKey",
-          foreignField: "subCategoryKey",
-          as: "subCategory",
+const products: (Omit<ProductType, "_id"> & { _id: mongoose.Types.ObjectId })[] =
+      await Product.aggregate([
+        {
+          $lookup: {
+            from: "subcategories",
+            localField: "subCategoryKey",
+            foreignField: "subCategoryKey",
+            as: "subCategory",
+          },
         },
-      },
-      { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "categories",
-          localField: "subCategory.parentCategoryKey",
-          foreignField: "categoryKey",
-          as: "category",
+        { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "subCategory.parentCategoryKey",
+            foreignField: "categoryKey",
+            as: "category",
+          },
         },
-      },
-      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
-      {
-        $project: {
-          _id: 1,
-          productTitle: 1,
-          productDescription: 1,
-          subCategoryName: "$subCategory.subCategoryName",
-          categoryName: "$category.categoryName",
-          price: 1,
-          productImages: 1,
-          subCategoryKey: 1,
-          categoryKey: 1,
+        { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            _id: 1,
+            productTitle: 1,
+            productDescription: 1,
+            price: 1,
+            subCategoryKey: 1,
+            productImages: 1,
+            subCategoryName: "$subCategory.subCategoryName",
+            categoryName: "$category.categoryName",
+            categoryKey: "$category.categoryKey",
+          },
         },
-      },
-    ]);
+      ]);
 
     return products.map((product) => ({
+      ...product,
       _id: product._id.toString(),
-      productTitle: product.productTitle,
-      productDescription: product.productDescription,
-      price: product.price,
-      subCategoryKey: product.subCategoryKey,
-      categoryKey: product.categoryKey,
-      categoryName: product.categoryName,
-      subCategoryName: product.subCategoryName,
-      productImages: product.productImages,
     }));
   } catch (err) {
-    console.error("Error fetching products:", err);
+    console.error("Get All Products Error:", err);
     return [];
   }
 }
 
 // 🔍 Get Product By ID
-export async function getProductById(id: string): Promise<any | null> {
+export async function getProductById(id: string): Promise<ProductType | null> {
   try {
     await connectDB();
-    const product = await Product.findById(id);
-    return product;
-  } catch {
+
+    if (!mongoose.Types.ObjectId.isValid(id)) return null;
+
+    const product = (await Product.findById(id).lean()) as ProductType | null;
+    if (!product) return null;
+
+    return {
+      ...product,
+      _id: product._id.toString(),
+    };
+  } catch (err) {
+    console.error("Get Product By ID Error:", err);
     return null;
   }
 }
 
 // 🔍 Get SubCategory by Key
-export async function getSubCategoryByKey(subCategoryKey: string): Promise<any | null> {
+export async function getSubCategoryByKey(
+  subCategoryKey: string
+): Promise<{
+  _id: string;
+  subCategoryName: string;
+  subCategoryKey: string;
+  parentCategoryKey: string;
+} | null> {
   try {
     await connectDB();
-    const subCategory = await SubCategory.findOne({ subCategoryKey });
-    return subCategory;
-  } catch {
+
+    const subCategory = (await SubCategory.findOne({ subCategoryKey }).lean()) as
+      | {
+          _id: mongoose.Types.ObjectId;
+          subCategoryName: string;
+          subCategoryKey: string;
+          parentCategoryKey: string;
+        }
+      | null;
+
+    if (!subCategory) return null;
+
+    return {
+      ...subCategory,
+      _id: subCategory._id.toString(),
+    };
+  } catch (err) {
+    console.error("Get SubCategory Error:", err);
     return null;
   }
 }
