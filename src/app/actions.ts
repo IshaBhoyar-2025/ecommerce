@@ -259,3 +259,22 @@ export async function getCartProductsByIds(storedCart: string[]) {
   }));
 
 }
+
+// Add this to your existing actions.ts file
+export async function searchProducts(query: string) {
+  if (!query) return [];
+
+  await connectDB();
+
+  const products = await Product.find({
+    productTitle: { $regex: query, $options: "i" }, // case-insensitive
+  });
+
+  return products.map((product) => ({
+    _id: product._id.toString(),
+    productTitle: product.productTitle,
+    productDescription: product.productDescription,
+    price: product.price,
+    productImages: product.productImages,
+  }));
+}

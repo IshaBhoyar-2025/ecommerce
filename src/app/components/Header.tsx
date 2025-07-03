@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getCurrentUser, logoutUser } from "../actions";
 import { FaShoppingCart, FaUserCircle, FaSearch } from "react-icons/fa";
 
@@ -10,6 +11,7 @@ export default function Header() {
   const [cart, setCart] = useState<string[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     async function checkUser() {
@@ -24,16 +26,26 @@ export default function Header() {
     }
   }, []);
 
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?query=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery("");
+    }
+  };
+
   return (
     <header className="bg-white border-b shadow-sm fixed top-0 left-0 w-full z-50">
-      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-        {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-blue-600 tracking-wide hover:opacity-90 transition">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-y-3">
+        <Link
+          href="/"
+          className="text-2xl font-bold text-blue-600 tracking-wide hover:opacity-90 transition shrink-0"
+        >
           Shoporia
         </Link>
 
         {/* Search */}
-        <div className="relative w-1/2">
+        <form onSubmit={handleSearch} className="relative w-full sm:w-1/2 order-3 sm:order-none">
           <input
             type="text"
             placeholder="Search for products..."
@@ -42,23 +54,24 @@ export default function Header() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <FaSearch className="absolute left-3 top-2.5 text-gray-400" />
-        </div>
+        </form>
 
         {/* Right Section */}
-        <div className="flex items-center space-x-6">
-          {/* Cart Icon */}
-          <Link href="/cart" className="relative flex items-center text-gray-700 hover:text-blue-600 transition">
+        <div className="flex items-center space-x-4 sm:space-x-6 shrink-0">
+          <Link
+            href="/cart"
+            className="relative flex items-center text-gray-700 hover:text-blue-600 transition"
+          >
             <FaShoppingCart size={20} />
             <span className="ml-1 text-sm font-medium">Cart ({cart.length})</span>
           </Link>
 
-          {/* User Actions */}
           {!isLoggedIn ? (
             <>
-              <Link href="/login" className="text-gray-700 hover:text-blue-600 transition">
+              <Link href="/login" className="text-gray-700 hover:text-blue-600 transition text-sm">
                 Login
               </Link>
-              <Link href="/register" className="text-gray-700 hover:text-blue-600 transition">
+              <Link href="/register" className="text-gray-700 hover:text-blue-600 transition text-sm">
                 Register
               </Link>
             </>

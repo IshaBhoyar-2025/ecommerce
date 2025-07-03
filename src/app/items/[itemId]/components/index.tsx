@@ -21,41 +21,37 @@ export function Item({ productId, productImages }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6 mt-6 w-full">
+    <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6 w-full md:w-[400px] mt-12">
       {/* Selected Main Image */}
       {selectedImage && (
-        <div className="mb-6 flex justify-center">
+        <div className="mb-4 sm:mb-6 flex justify-center">
           <SecureImage
             src={selectedImage}
             alt="Selected Product"
             width={400}
             height={400}
-            className="rounded-lg object-cover shadow-lg transition-transform hover:scale-105"
+            className="rounded-lg object-cover shadow-lg w-full h-auto max-h-[400px] sm:max-w-full transition-transform hover:scale-105"
           />
         </div>
       )}
 
       {/* Thumbnail Gallery */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mb-6">
-       {productImages.map((image) => (
-        
-  <SecureImage
-    src={image.thumb} // ✅ correct
-    key={image.filename}
-    alt={image.filename}
-    width={100}
-    height={100}
-    className={`w-full h-24 object-cover rounded-lg cursor-pointer transition-transform ${
-      selectedImage === image.thumb
-        ? "ring-2 ring-blue-500 scale-105"
-        : "hover:scale-105"
-    }`}
-    onClick={() => setSelectedImage(image.thumb)}
-  />
+      <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        {productImages.map((image) => (
+          <SecureImage
+            src={image.thumb}
+            key={image.filename}
+            alt={image.filename}
+            width={100}
+            height={100}
+            className={`w-full h-20 sm:h-24 object-cover rounded-lg cursor-pointer transition-transform ${
+              selectedImage === image.thumb
+                ? "ring-2 ring-blue-500 scale-105"
+                : "hover:scale-105"
+            }`}
+            onClick={() => setSelectedImage(image.thumb)}
+          />
         ))}
-  
-
-      
       </div>
 
       {/* Add to Cart Button */}

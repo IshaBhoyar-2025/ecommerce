@@ -61,7 +61,7 @@ interface RazorpayInstance {
 }
 
 interface RazorpayConstructor {
-  new(options: RazorpayOptions): RazorpayInstance;
+  new (options: RazorpayOptions): RazorpayInstance;
 }
 
 declare global {
@@ -187,48 +187,53 @@ export function CheckoutPage({ address }: CheckoutPageProps) {
   return (
     <>
       <Header />
-      <div className="p-6 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2 space-y-6 bg-gray-50 p-4 rounded shadow-sm">
-          <div className="bg-white p-4 border rounded">
-            <div className="flex justify-between mb-2">
-              <h2 className="text-lg font-semibold">Delivery Address</h2>
-              <a href="/shipping" className="text-blue-600">Change</a>
+      <div className="p-4 sm:p-6 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-4 sm:mt-6 mt-30">
+        {/* Left Column */}
+        <div className="lg:col-span-2 space-y-6 bg-gray-50 p-4 rounded shadow-sm mt-8">
+          {/* Delivery Address */}
+          <div className="bg-white p-4 border rounded mt-8">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-base sm:text-lg font-semibold">Delivery Address</h2>
+              <a href="/shipping" className="text-blue-600 text-sm">Change</a>
             </div>
             <p className="font-semibold">{address.fullName}</p>
             <p>{address.address}</p>
             <p>{address.phone}</p>
           </div>
 
+          {/* Cart Products */}
           {cartProducts.length === 0 ? (
-            <p className="text-gray-500">Your cart is empty.</p>
+            <p className="text-gray-500 text-center">Your cart is empty.</p>
           ) : (
             <>
               {cartProducts.map((product) => (
-                <div key={product._id} className="flex gap-4 border-b pb-4">
+                <div
+                  key={product._id}
+                  className="flex flex-col sm:flex-row gap-4 border-b pb-4"
+                >
                   <SecureImage
-                    src={
-                      product.productImages?.[0]?.thumb
-
-                    }
+                    src={product.productImages?.[0]?.thumb}
                     alt={product.productTitle}
-                    width={128}
-                    height={128}
-                    className="object-cover rounded"
+                    width={150}
+                    height={150}
+                    className="object-cover rounded w-full sm:w-32 h-32"
                   />
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold">{product.productTitle}</h3>
+                    <h3 className="text-base sm:text-lg font-semibold">
+                      {product.productTitle}
+                    </h3>
                     <p className="text-sm text-gray-600 mb-2">{product.productDescription}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <button
                         onClick={() => handleQuantityChange(product._id, "decrease")}
-                        className="px-2 py-1 bg-gray-200 rounded"
+                        className="px-3 py-1 bg-gray-200 rounded text-xl"
                       >
                         −
                       </button>
                       <span className="text-lg font-medium">{product.quantity}</span>
                       <button
                         onClick={() => handleQuantityChange(product._id, "increase")}
-                        className="px-2 py-1 bg-gray-200 rounded"
+                        className="px-3 py-1 bg-gray-200 rounded text-xl"
                       >
                         +
                       </button>
@@ -240,10 +245,11 @@ export function CheckoutPage({ address }: CheckoutPageProps) {
                 </div>
               ))}
 
-              <div className="text-right mt-8">
+              {/* Place Order */}
+              <div className="mt-6 text-center sm:text-right">
                 <button
                   onClick={handlePlaceOrder}
-                  className="bg-orange-500 text-white px-6 py-3 rounded hover:bg-orange-600 transition"
+                  className="bg-orange-500 text-white px-6 py-3 rounded hover:bg-orange-600 transition w-full sm:w-auto"
                 >
                   PLACE ORDER
                 </button>
@@ -252,9 +258,10 @@ export function CheckoutPage({ address }: CheckoutPageProps) {
           )}
         </div>
 
-        <div className="w-full border rounded-lg p-6 bg-white shadow-sm h-fit">
-          <h3 className="text-lg font-bold mb-4 border-b pb-2">PRICE DETAILS</h3>
-          <div className="space-y-2 text-sm">
+        {/* Right Column */}
+        <div className="w-full border rounded-lg p-4 sm:p-6 bg-white shadow-sm h-fit">
+          <h3 className="text-base sm:text-lg font-bold mb-4 border-b pb-2">PRICE DETAILS</h3>
+          <div className="space-y-2 text-sm sm:text-base">
             <div className="flex justify-between">
               <span>Price ({cartProducts.length} item{cartProducts.length > 1 ? "s" : ""})</span>
               <span>₹{totalAmount}</span>
@@ -274,9 +281,7 @@ export function CheckoutPage({ address }: CheckoutPageProps) {
             <span>Total Amount</span>
             <span className="text-green-600">₹{totalWithPlatformFee}</span>
           </div>
-          <p className="text-green-600 mt-2 text-sm">
-            You will save ₹40 on this order
-          </p>
+          <p className="text-green-600 mt-2 text-sm">You will save ₹40 on this order</p>
         </div>
       </div>
     </>

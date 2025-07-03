@@ -19,7 +19,6 @@ export function Home({ products, categories }: Props) {
 
   const addToCart = (product: ProductType) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    // Add product ID to cart; here you might want to allow duplicates or increase quantity, but this keeps unique IDs
     const updatedCart = [...cart.filter((item: string) => item !== product._id), product._id];
     localStorage.setItem("cart", JSON.stringify(updatedCart));
     router.push("/cart");
@@ -33,24 +32,24 @@ export function Home({ products, categories }: Props) {
     <div className="min-h-screen font-sans bg-gradient-to-br from-slate-50 to-slate-200 text-gray-800">
       <Header />
 
-      <section className="bg-white mt-20 py-20 px-6 md:px-12 shadow-sm rounded-b-3xl">
+      <section className="bg-white mt-20 py-20 px-4 sm:px-6 md:px-12 shadow-sm rounded-b-3xl">
         <div className="max-w-7xl mx-auto flex flex-col-reverse md:flex-row items-center justify-between gap-12">
           <div className="text-center md:text-left flex-1">
-            <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
               Your Daily <span className="text-indigo-600">Shopping</span> Hub
             </h1>
-            <p className="text-lg text-gray-600 mb-6">
+            <p className="text-base sm:text-lg text-gray-600 mb-6">
               Discover top deals on fashion, electronics, and essentials — all in one place.
             </p>
             <a
               href="#products"
-              className="inline-flex items-center gap-2 bg-indigo-600 text-white py-3 px-6 rounded-full text-lg font-semibold hover:bg-indigo-700 transition"
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white py-3 px-6 rounded-full text-base sm:text-lg font-semibold hover:bg-indigo-700 transition"
             >
               🛍 Start Shopping
             </a>
           </div>
 
-          <div className="flex-1 grid grid-cols-2 gap-6 w-full max-w-md">
+          <div className="flex-1 grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-md">
             {[
               { name: "⚡ Electronics", key: "electronics" },
               { name: "👗 Fashion", key: "fashion" },
@@ -60,18 +59,18 @@ export function Home({ products, categories }: Props) {
               <Link
                 key={index}
                 href={`/categories/${cat.key}`}
-                className="bg-gradient-to-tr from-white via-blue-50 to-white p-6 rounded-3xl border border-gray-100 shadow hover:shadow-md hover:-translate-y-1 transition block"
+                className="bg-gradient-to-tr from-white via-blue-50 to-white p-4 sm:p-6 rounded-3xl border border-gray-100 shadow hover:shadow-md hover:-translate-y-1 transition block text-center"
               >
-                <p className="text-xl font-semibold text-gray-800">{cat.name}</p>
+                <p className="text-base sm:text-xl font-semibold text-gray-800">{cat.name}</p>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <div className="flex px-6 py-12 gap-10 max-w-7xl mx-auto">
+      <div className="flex flex-col lg:flex-row px-4 sm:px-6 py-8 sm:py-12 gap-10 max-w-7xl mx-auto">
         {/* Sidebar */}
-        <aside className="w-64 bg-white p-6 rounded-2xl shadow-md sticky top-24 h-fit">
+        <aside className="w-full lg:w-64 bg-white p-6 rounded-2xl shadow-md sticky top-24 h-fit">
           <h3 className="text-xl font-bold mb-4">Categories</h3>
           <ul className="space-y-3">
             {categories.map((cat) => (
@@ -105,7 +104,10 @@ export function Home({ products, categories }: Props) {
         </aside>
 
         {/* Products Grid */}
-        <main id="products" className="flex-1 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <main
+          id="products"
+          className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+        >
           {filteredProducts.length === 0 ? (
             <p className="text-center col-span-full text-gray-500">No products found.</p>
           ) : (

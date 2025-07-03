@@ -29,16 +29,9 @@ export default function ReviewSection({ productId }: Props) {
   const [text, setText] = useState("");
   const [rating, setRating] = useState(5);
 
-  // Fetch reviews with proper memoization to avoid dependency warning
   const fetchReviews = useCallback(async () => {
     const res = await getReviews(productId);
-    const mappedReviews: Review[] = res.map((r: {
-      _id: string;
-      userName: string;
-      userId: string;
-      text: string;
-      rating: number;
-    }) => ({
+    const mappedReviews: Review[] = res.map((r: Review) => ({
       _id: r._id,
       userName: r.userName,
       userId: r.userId,
@@ -92,21 +85,24 @@ export default function ReviewSection({ productId }: Props) {
 
   return (
     <div className="mt-10 border-t pt-6">
-      <h2 className="text-xl font-bold mb-4">Customer Reviews</h2>
+      <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-800">Customer Reviews</h2>
 
       {reviews.length === 0 ? (
         <p className="text-gray-600 italic">No reviews yet.</p>
       ) : (
         <ul className="space-y-4 mb-6">
           {reviews.map((review) => (
-            <li key={review._id} className="bg-gray-50 rounded-lg p-4 shadow-sm">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">{review.userName}</span>
+            <li
+              key={review._id}
+              className="bg-gray-50 rounded-lg p-4 shadow-sm text-sm sm:text-base"
+            >
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <span className="font-semibold text-gray-700">{review.userName}</span>
                 <div className="flex space-x-1">
                   {[...Array(5)].map((_, i) => (
                     <FaStar
                       key={i}
-                      className={`h-5 w-5 ${
+                      className={`h-4 w-4 sm:h-5 sm:w-5 ${
                         i < review.rating ? "text-yellow-500" : "text-gray-300"
                       }`}
                     />
@@ -117,7 +113,7 @@ export default function ReviewSection({ productId }: Props) {
               {review.userId === currentUser && (
                 <button
                   onClick={() => handleDelete(review._id)}
-                  className="text-red-600 text-sm mt-2 hover:underline"
+                  className="text-red-600 text-xs sm:text-sm mt-2 hover:underline"
                 >
                   Delete
                 </button>
@@ -140,18 +136,20 @@ export default function ReviewSection({ productId }: Props) {
           You’ve already submitted a review.
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Write your review..."
-            className="w-full border rounded-lg p-3 resize-none"
+            className="w-full border rounded-lg p-3 resize-none text-sm sm:text-base"
             required
           />
 
           <div>
-            <p className="font-semibold text-gray-700 mb-2">Rate this product:</p>
-            <div className="flex space-x-4">
+            <p className="font-semibold text-gray-700 mb-2 text-sm sm:text-base">
+              Rate this product:
+            </p>
+            <div className="flex flex-wrap gap-3">
               {[1, 2, 3, 4, 5].map((num) => (
                 <label key={num} className="flex items-center space-x-1">
                   <input
@@ -171,7 +169,7 @@ export default function ReviewSection({ productId }: Props) {
 
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base"
           >
             Submit Review
           </button>
